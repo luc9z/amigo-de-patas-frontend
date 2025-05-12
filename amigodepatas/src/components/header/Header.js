@@ -6,14 +6,26 @@ import { authService } from '@/services/api';
 
 export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    setIsAuthenticated(authService.isAuthenticated());
+    const checkAuth = async () => {
+      const authenticated = authService.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      
+      if (authenticated) {
+        const { isAdmin } = await authService.checkAdminRole();
+        setIsAdmin(isAdmin);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const handleLogout = () => {
     authService.logout();
     setIsAuthenticated(false);
+    setIsAdmin(false);
     window.location.href = '/';
   };
 
@@ -26,11 +38,20 @@ export default function Header() {
           </Link>
           
           <div className="flex items-center space-x-4">
+            <Link href="/animais" className="text-gray-600 hover:text-gray-800">
+              Animais
+            </Link>
+            
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-800">
-                  Dashboard
-                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    Painel Admin
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"

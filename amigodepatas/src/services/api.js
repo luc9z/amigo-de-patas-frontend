@@ -38,11 +38,6 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ email, senha }),
     });
-    
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
-    
     return data;
   },
 
@@ -71,7 +66,41 @@ export const authService = {
     return !!localStorage.getItem('token');
   },
 
-  // Teste de conexão com o backend
+  // Verificar se o usuário é admin
+  checkAdminRole: async () => {
+    try {
+      const response = await fetchAPI('/auth/check-role');
+      return { isAdmin: response.role === 'ROLE_ADMIN' };
+    } catch (error) {
+      return { isAdmin: false };
+    }
+  },
+
+  // Serviços de animais
+  getAnimais: async () => {
+    return fetchAPI('/animais/list');
+  },
+
+  createAnimal: async (animalData) => {
+    return fetchAPI('/animais/create', {
+      method: 'POST',
+      body: JSON.stringify(animalData),
+    });
+  },
+
+  updateAnimal: async (id, animalData) => {
+    return fetchAPI(`/animais/update/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(animalData),
+    });
+  },
+
+  deleteAnimal: async (id) => {
+    return fetchAPI(`/animais/delete/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   testConnection: async () => {
     try {
       const data = await fetchAPI('/auth/login', {

@@ -31,7 +31,7 @@ export default function Login() {
 
     try {
       await authService.login(formData.email, formData.senha);
-      router.push('/dashboard');
+      router.push('/');
     } catch (error) {
       setError('Email ou senha inválidos');
     } finally {
