@@ -22,8 +22,9 @@ const fetchAPI = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'Erro na requisição');
+    const error = new Error('Erro na requisição');
+    error.response = response;
+    throw error;
   }
 
   return response.json();
