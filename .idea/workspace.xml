@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5c3f39e0-906e-4ec7-a083-08e4941f3ad5" name="Changes" comment="" />
+    <list default="true" id="5c3f39e0-906e-4ec7-a083-08e4941f3ad5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/amigodepatas/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/amigodepatas/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,7 +27,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "home",
+    "git-widget-placeholder": "Lucas",
     "last_opened_file_path": "C:/Users/User/Desktop/amigo-de-patas-frontend",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -50,7 +53,7 @@
       <option name="presentableId" value="Default" />
       <updated>1747051899240</updated>
       <workItem from="1747051900314" duration="435000" />
-      <workItem from="1747052356314" duration="3052000" />
+      <workItem from="1747052356314" duration="2457000" />
     </task>
     <servers />
   </component>
