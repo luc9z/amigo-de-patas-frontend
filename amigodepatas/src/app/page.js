@@ -40,7 +40,6 @@ export default function Home() {
       <Header />
       
       <main className="flex-grow">
-        {/* Hero Section */}
         <section className="relative h-[600px] bg-gradient-to-r from-blue-500 to-blue-700">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white px-4">
@@ -56,7 +55,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Seção de Estatísticas */}
         <section className="bg-blue-50 py-16">
           <div className="container mx-auto px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -76,7 +74,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Seção de Animais em Destaque */}
         <section className="py-16">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-12">Animais em Destaque</h2>
@@ -134,7 +131,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Seção Como Funciona */}
         <section className="bg-gray-50 py-16">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-12">Como Funciona a Adoção</h2>
@@ -164,7 +160,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Seção de Depoimentos */}
         <section className="py-16">
           <div className="container mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-12">Histórias de Sucesso</h2>
@@ -230,7 +225,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Call to Action */}
         <section className="bg-blue-600 text-white py-16">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl font-bold mb-4">Pronto para Adotar?</h2>
