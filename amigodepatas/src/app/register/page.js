@@ -30,19 +30,16 @@ export default function Register() {
     e.preventDefault();
     setError('');
 
-    // Validação do nome (não pode conter números)
     if (/\d/.test(formData.nome)) {
       window.alert('O nome não pode conter números.');
       return;
     }
 
-    // Validação do email (regex simples)
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       window.alert('Digite um email válido.');
       return;
     }
 
-    // Validação das senhas
     if (formData.senha !== formData.confirmarSenha) {
       window.alert('As senhas não coincidem.');
       return;
@@ -61,18 +58,15 @@ export default function Register() {
       router.push('/');
     } catch (error) {
       if (error.response) {
-        // Tenta ler como JSON
         try {
           const data = await error.response.clone().json();
           if (data && data.message) {
             window.alert(data.message);
           } else {
-            // Se não tiver campo message, tenta mostrar o texto puro
             const text = await error.response.text();
             window.alert(text || 'Erro ao criar conta. Tente novamente.');
           }
         } catch {
-          // Se não for JSON, mostra o texto puro
           const text = await error.response.text();
           window.alert(text || 'Erro ao criar conta. Tente novamente.');
         }
