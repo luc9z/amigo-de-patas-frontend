@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from '@/components/header/Header';
-import Footer from '@/components/footer/Footer';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { authService } from '@/services/api';
-import FilterPanel from '@/components/filterPanel/filterPanel';
+import FilterPanel from '@/app/components/filterPanel';
 import Link from 'next/link';
 
 export default function AnimaisPage() {
