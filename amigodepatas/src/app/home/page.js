@@ -47,7 +47,7 @@ export default function Home() {
     async function carregarAnimais() {
       try {
         const dados = await authService.getAnimais();
-        setAnimais(dados);
+        setAnimais(gerarSlugsUnicos(dados));
       } catch (err) {
         console.error("Erro ao carregar animais:", err);
       }
@@ -56,12 +56,18 @@ export default function Home() {
     carregarAnimais();
   }, []);
 
-  const dogCards = animais
-    .filter((a) => a.especie.toLowerCase() === "cachorro")
-    .slice(0, 10);
-  const catCards = animais
-    .filter((a) => a.especie.toLowerCase() === "gato")
-    .slice(0, 10);
+  function gerarSlugsUnicos(animais) {
+    const contador = {};
+    return animais.map((animal) => {
+      const nomeBase = animal.nome.toLowerCase().replace(/\s+/g, "");
+      contador[nomeBase] = (contador[nomeBase] || 0) + 1;
+      const slug = `${nomeBase}${contador[nomeBase]}`;
+      return { ...animal, slug, especie: animal.especie.toLowerCase() };
+    });
+  }
+
+  const dogCards = animais.filter((a) => a.especie === "cachorro").slice(0, 10);
+  const catCards = animais.filter((a) => a.especie === "gato").slice(0, 10);
 
   const renderCardsSlider = (cards, tipo) => {
     const scrollRef = useRef(null);
@@ -110,31 +116,18 @@ export default function Home() {
                   <p className="text-sm text-gray-600 mb-2">
                     {animal.descricao}
                   </p>
-
                   <div className="flex justify-center gap-2 mb-3 flex-wrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        animal.vacinado
-                          ? "bg-gray-100 text-gray-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                       {animal.vacinado ? "Vacinado" : "Não vacinado"}
                     </span>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        animal.castrado
-                          ? "bg-gray-100 text-gray-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                       {animal.castrado ? "Castrado" : "Não castrado"}
                     </span>
                   </div>
                 </div>
 
                 <Link
-                  href={`/animais/${animal.id}`}
+                  href={`/${animal.especie}/${animal.slug}`}
                   className="mt-auto inline-block bg-pink-200 text-sm font-medium text-center text-gray-800 py-2 px-4 rounded-md hover:bg-pink-300 transition"
                 >
                   Conhecer
