@@ -1,48 +1,40 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import authService from "@/services/api";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const carouselImages = [
-  'https://images.unsplash.com/photo-1601758123927-1965c1f9f5e0',
-  'https://images.unsplash.com/photo-1558788353-f76d92427f16',
-  'https://images.unsplash.com/photo-1507146426996-ef05306b995a'
-];
-
-const dogCards = [
-  { src: 'https://images.unsplash.com/photo-1583511655789-8bfb3e7d6d9d', name: 'Bidu', desc: 'Alegre, carinhoso e vacinado.' },
-  { src: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d', name: 'Luna', desc: 'Muito dócil e ótima com crianças.' },
-  { src: 'https://images.unsplash.com/photo-1557976606-d3e48ef66a8f', name: 'Max', desc: 'Ativo e adora brincar.' }
-];
-
-const catCards = [
-  { src: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6', name: 'Mimi', desc: 'Curiosa e muito carinhosa.' },
-  { src: 'https://images.unsplash.com/photo-1605433249632-e3c9a4910314', name: 'Tom', desc: 'Sociável e gosta de colo.' },
-  { src: 'https://images.unsplash.com/photo-1574158622682-e40e69881006', name: 'Nina', desc: 'Independente e tranquila.' }
+  "https://images.unsplash.com/photo-1601758123927-1965c1f9f5e0",
+  "https://images.unsplash.com/photo-1558788353-f76d92427f16",
+  "https://images.unsplash.com/photo-1507146426996-ef05306b995a",
 ];
 
 const feedbacks = [
   {
-    name: 'Maria Silva',
-    image: 'https://randomuser.me/api/portraits/women/44.jpg',
-    text: 'Adotar o Rex foi a melhor decisão da minha vida. Ele trouxe tanta alegria para nossa família!'
+    name: "Maria Silva",
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
+    text: "Adotar o Rex foi a melhor decisão da minha vida. Ele trouxe tanta alegria para nossa família!",
   },
   {
-    name: 'João Santos',
-    image: 'https://randomuser.me/api/portraits/men/35.jpg',
-    text: 'O processo de adoção foi muito simples e a equipe do Amigo de Patas nos ajudou em cada etapa.'
+    name: "João Santos",
+    image: "https://randomuser.me/api/portraits/men/35.jpg",
+    text: "O processo de adoção foi muito simples e a equipe do Amigo de Patas nos ajudou em cada etapa.",
   },
   {
-    name: 'Ana Paula',
-    image: 'https://randomuser.me/api/portraits/women/68.jpg',
-    text: 'A adoção foi rápida e segura. Recomendo a todos!'
-  }
+    name: "Ana Paula",
+    image: "https://randomuser.me/api/portraits/women/68.jpg",
+    text: "A adoção foi rápida e segura. Recomendo a todos!",
+  },
 ];
 
 export default function Home() {
   const [index, setIndex] = useState(0);
+  const [animais, setAnimais] = useState([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,29 +43,133 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const handlePrev = () => setIndex((index - 1 + carouselImages.length) % carouselImages.length);
-  const handleNext = () => setIndex((index + 1) % carouselImages.length);
+  useEffect(() => {
+    async function carregarAnimais() {
+      try {
+        const dados = await authService.getAnimais();
+        setAnimais(dados);
+      } catch (err) {
+        console.error("Erro ao carregar animais:", err);
+      }
+    }
 
-  const renderCards = (cards) => (
-    <div className="flex flex-wrap justify-center gap-6">
-      {cards.map((animal, i) => (
-        <div key={i} className="w-[260px] h-[360px] bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
-          <div className="relative w-full h-[200px]">
-            <Image src={animal.src} alt={animal.name} fill className="object-cover" />
-          </div>
-          <div className="p-4 flex-grow">
-            <h3 className="text-lg font-medium mb-1">{animal.name}</h3>
-            <p className="text-sm text-gray-600">{animal.desc}</p>
-          </div>
+    carregarAnimais();
+  }, []);
+
+  const dogCards = animais
+    .filter((a) => a.especie.toLowerCase() === "cachorro")
+    .slice(0, 10);
+  const catCards = animais
+    .filter((a) => a.especie.toLowerCase() === "gato")
+    .slice(0, 10);
+
+  const renderCardsSlider = (cards, tipo) => {
+    const scrollRef = useRef(null);
+
+    const scroll = (dir) => {
+      if (scrollRef.current) {
+        const amount = 280;
+        scrollRef.current.scrollBy({
+          left: dir === "left" ? -amount : amount,
+          behavior: "smooth",
+        });
+      }
+    };
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
+        >
+          <ChevronLeft />
+        </button>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-6 overflow-x-auto scroll-smooth px-6 py-2 scrollbar-hide"
+        >
+          {cards.map((animal, i) => (
+            <div
+              key={animal.id || i}
+              className="min-w-[260px] h-auto bg-white border border-gray-200 rounded-xl shadow-md flex flex-col overflow-hidden"
+            >
+              <div className="w-full h-auto">
+                <Image
+                  src={animal.imagemUrl || "/placeholder.jpg"}
+                  alt={animal.nome}
+                  width={260}
+                  height={260}
+                  className="rounded-t-xl object-cover w-full h-[240px]"
+                />
+              </div>
+
+              <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {animal.descricao}
+                  </p>
+
+                  <div className="flex justify-center gap-2 mb-3 flex-wrap">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        animal.vacinado
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {animal.vacinado ? "Vacinado" : "Não vacinado"}
+                    </span>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        animal.castrado
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {animal.castrado ? "Castrado" : "Não castrado"}
+                    </span>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/animais/${animal.id}`}
+                  className="mt-auto inline-block bg-pink-200 text-sm font-medium text-center text-gray-800 py-2 px-4 rounded-md hover:bg-pink-300 transition"
+                >
+                  Conhecer
+                </Link>
+              </div>
+            </div>
+          ))}
+
+          <Link
+            href={`/animais/${tipo}`}
+            className="min-w-[260px] h-auto bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition"
+          >
+            <div className="p-6">
+              <h3 className="text-base font-semibold text-gray-700 mb-1">
+                Ver todos
+              </h3>
+              <p className="text-sm text-gray-500">do tipo {tipo}</p>
+            </div>
+          </Link>
         </div>
-      ))}
-    </div>
-  );
+
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
+        >
+          <ChevronRight />
+        </button>
+      </div>
+    );
+  };
 
   const reasons = [
-    'Adotar salva vidas e oferece um lar a quem precisa.',
-    'Animais adotados são gratos e amorosos.',
-    'Você combate o abandono e maus-tratos.'
+    "Adotar salva vidas e oferece um lar a quem precisa.",
+    "Animais adotados são gratos e amorosos.",
+    "Você combate o abandono e maus-tratos.",
   ];
 
   return (
@@ -82,7 +178,10 @@ export default function Home() {
 
       <section className="py-10 px-4 bg-gray-100 text-center">
         <div className="mx-auto w-full max-w-5xl h-[500px] relative overflow-hidden rounded-2xl shadow-lg">
-          <div className="flex h-full transition-transform duration-1000 ease-in-out" style={{ transform: `translateX(-${index * 100}%)` }}>
+          <div
+            className="flex h-full transition-transform duration-1000 ease-in-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
             {carouselImages.map((src, i) => (
               <div key={i} className="min-w-full h-full relative">
                 <Image
@@ -96,13 +195,17 @@ export default function Home() {
             ))}
           </div>
           <button
-            onClick={handlePrev}
+            onClick={() =>
+              setIndex(
+                (index - 1 + carouselImages.length) % carouselImages.length
+              )
+            }
             className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200"
           >
             &#10094;
           </button>
           <button
-            onClick={handleNext}
+            onClick={() => setIndex((index + 1) % carouselImages.length)}
             className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200"
           >
             &#10095;
@@ -114,20 +217,33 @@ export default function Home() {
       </section>
 
       <section className="py-12 px-4 text-center">
-        <h2 className="text-xl font-semibold text-gray-700 mb-8">Cachorros Disponíveis para Adoção</h2>
-        {renderCards(dogCards)}
+        <h2 className="text-xl font-semibold text-gray-700 mb-8">
+          Cachorros Disponíveis para Adoção
+        </h2>
+        <div className="max-w-screen-xl mx-auto relative">
+          {renderCardsSlider(dogCards, "cachorro")}
+        </div>
       </section>
 
       <section className="py-12 px-4 text-center">
-        <h2 className="text-xl font-semibold text-gray-700 mb-8">Gatos Disponíveis para Adoção</h2>
-        {renderCards(catCards)}
+        <h2 className="text-xl font-semibold text-gray-700 mb-8">
+          Gatos Disponíveis para Adoção
+        </h2>
+        <div className="max-w-screen-xl mx-auto relative">
+          {renderCardsSlider(catCards, "gato")}
+        </div>
       </section>
 
       <section className="py-12 px-4 text-center bg-gray-100">
-        <h2 className="text-lg font-semibold text-gray-700 mb-8">Por que Adotar um Animal?</h2>
+        <h2 className="text-lg font-semibold text-gray-700 mb-8">
+          Por que Adotar um Animal?
+        </h2>
         <div className="flex justify-center flex-wrap gap-6">
           {reasons.map((msg, i) => (
-            <div key={i} className="bg-white border border-gray-300 rounded-lg shadow-sm p-6 w-[280px]">
+            <div
+              key={i}
+              className="bg-white border border-gray-300 rounded-lg shadow-sm p-6 w-[280px]"
+            >
               <p className="text-gray-600 leading-relaxed">{msg}</p>
             </div>
           ))}
@@ -138,9 +254,20 @@ export default function Home() {
         <h2 className="text-2xl font-semibold mb-10">Histórias de Sucesso</h2>
         <div className="flex flex-wrap justify-center gap-8">
           {feedbacks.map((f, i) => (
-            <div key={i} className="w-[300px] bg-white rounded-xl shadow-md p-6 text-center">
-              <Image src={f.image} alt={f.name} width={60} height={60} className="rounded-full mx-auto object-cover" />
-              <h4 className="mt-4 text-base font-semibold text-gray-700">{f.name}</h4>
+            <div
+              key={i}
+              className="w-[300px] bg-white rounded-xl shadow-md p-6 text-center"
+            >
+              <Image
+                src={f.image}
+                alt={f.name}
+                width={60}
+                height={60}
+                className="rounded-full mx-auto object-cover"
+              />
+              <h4 className="mt-4 text-base font-semibold text-gray-700">
+                {f.name}
+              </h4>
               <p className="text-sm text-gray-500 italic mt-2">"{f.text}"</p>
             </div>
           ))}
