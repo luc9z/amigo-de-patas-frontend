@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-   images: {
-    domains: ['images.unsplash.com', 'randomuser.me'],
-    
-  },
-};
+  images: {
+    unoptimized: true, // 👈 permite qualquer domínio, sem otimização
+  }
+}
 
 export default nextConfig;

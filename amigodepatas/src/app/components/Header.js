@@ -1,45 +1,35 @@
-'use client';
+"use client";
+
+import Link from "next/link";
 
 export default function Header() {
   return (
-    <header style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '1rem 2rem',
-      backgroundColor: '#fff',
-      borderBottom: '1px solid #eee',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50
-    }}>
-      <div style={{ fontWeight: 'bold', fontSize: '22px', color: '#333' }}>
-        Amigo de Patas
-      </div>
-      <nav style={{ display: 'flex', gap: '1.5rem' }}>
-        <a href="#" style={{ color: '#555', textDecoration: 'none' }}>Quem Somos</a>
-        <a href="#" style={{ color: '#555', textDecoration: 'none' }}>Quero Adotar</a>
-        <a href="#" style={{ color: '#555', textDecoration: 'none' }}>Contato</a>
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+      <div className="text-[22px] font-bold text-gray-800">Amigo de Patas</div>
+
+      <nav className="flex gap-6">
+        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+          Quem Somos
+        </a>
+        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+          Quero Adotar
+        </a>
+        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+          Contato
+        </a>
       </nav>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button style={{
-          background: 'transparent',
-          border: '1px solid #888',
-          borderRadius: '5px',
-          padding: '0.4rem 0.8rem',
-          cursor: 'pointer',
-          color: '#555'
-        }}>Entrar</button>
-        <button style={{
-          backgroundColor: '#f8bebe',
-          border: 'none',
-          borderRadius: '5px',
-          padding: '0.4rem 0.8rem',
-          cursor: 'pointer',
-          color: '#333',
-          fontWeight: '500'
-        }}>Cadastrar-se</button>
+
+      <div className="flex gap-2">
+        <Link href="/login">
+          <button className="border border-gray-500 text-gray-700 rounded px-3 py-1 hover:bg-gray-100 transition">
+            Entrar
+          </button>
+        </Link>
+        <Link href="/register">
+          <button className="bg-pink-200 text-gray-800 font-medium rounded px-3 py-1 hover:bg-pink-300 transition">
+            Cadastrar-se
+          </button>
+        </Link>
       </div>
     </header>
   );
