@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Header from '@/components/header/Header';
-import Footer from '@/components/footer/Footer';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { authService } from '@/services/api';
 
 export default function Register() {
