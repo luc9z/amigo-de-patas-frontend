@@ -1,13 +1,10 @@
-// Configuração base da API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Função auxiliar para fazer requisições
 const fetchAPI = async (endpoint, options = {}) => {
   const defaultHeaders = {
     'Content-Type': 'application/json',
   };
 
-  // Adiciona o token de autenticação se existir
   const token = localStorage.getItem('token');
   if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
@@ -30,9 +27,7 @@ const fetchAPI = async (endpoint, options = {}) => {
   return response.json();
 };
 
-// Serviços de autenticação
 export const authService = {
-  // Login
   login: async (email, senha) => {
     const data = await fetchAPI('/auth/login', {
       method: 'POST',
@@ -41,7 +36,6 @@ export const authService = {
     return data;
   },
 
-  // Registro
   register: async (userData) => {
     const userDTO = {
       nome: userData.nome,
@@ -56,27 +50,23 @@ export const authService = {
     return data;
   },
 
-  // Logout
-  logout: () => {
-    localStorage.removeItem('token');
+  updateUser: async (userData) => {
+    const data = await fetchAPI('/auth/update-user', {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+    return data;
   },
 
-  // Verificar se o usuário está autenticado
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
   },
 
-  // Verificar se o usuário é admin
-  checkAdminRole: async () => {
-    try {
-      const response = await fetchAPI('/auth/check-role');
-      return { isAdmin: response.role === 'ROLE_ADMIN' };
-    } catch (error) {
-      return { isAdmin: false };
-    }
-  },
-
-  // Serviços de animais
   getAnimais: async () => {
     return fetchAPI('/animais/list');
   },
