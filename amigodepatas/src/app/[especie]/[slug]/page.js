@@ -25,7 +25,7 @@ export default function AnimalPage() {
       setAnimal(encontrado);
 
       const outrosAnimais = animaisComSlug
-        .filter((a) => a.slug !== slug)
+        .filter((a) => a.slug !== slug && !a.adotado)
         .slice(0, 10);
       setOutros(outrosAnimais);
     }
@@ -59,8 +59,22 @@ export default function AnimalPage() {
     <main className="bg-white text-gray-800 font-sans">
       <Header />
 
+      <section className="max-w-3xl mx-auto px-6 pt-8 pb-2">
+        <div className="mb-4">
+          <Link href="/" className="text-blue-500 hover:underline">
+            Página Inicial
+          </Link>
+          <span> / </span>
+          <Link href="/animais" className="text-blue-500 hover:underline">
+            Animais
+          </Link>
+          <span> / </span>
+          <span className="text-gray-700 font-semibold capitalize">{animal.nome}</span>
+        </div>
+      </section>
+
       <section className="max-w-3xl mx-auto px-6 py-12">
-        <div className="bg-white shadow-md rounded-2xl p-8 border border-gray-200 text-center">
+        <div className={`bg-white shadow-md rounded-2xl p-8 border text-center relative ${animal.adotado ? 'border-green-400' : 'border-gray-200'}`}>
           <Image
             src={animal.imagemUrl || "/placeholder.jpg"}
             alt={animal.nome}
@@ -68,6 +82,11 @@ export default function AnimalPage() {
             height={300}
             className="rounded-lg mx-auto object-cover h-[300px] w-[300px]"
           />
+          {animal.adotado && (
+            <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
+              Já foi adotado!
+            </div>
+          )}
           <h1 className="text-2xl font-bold mt-4 mb-1 capitalize">
             {animal.nome}
           </h1>
@@ -85,8 +104,11 @@ export default function AnimalPage() {
             </span>
           </div>
 
-          <button className="bg-pink-200 text-gray-800 font-medium px-6 py-2 rounded-md hover:bg-pink-300 transition">
-            Quero Adotar este Animal
+          <button 
+            className={`font-medium px-6 py-2 rounded-md transition ${animal.adotado ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-pink-200 text-gray-800 hover:bg-pink-300'}`}
+            disabled={animal.adotado}
+          >
+            {animal.adotado ? 'Este animal já foi adotado' : 'Quero Adotar este Animal'}
           </button>
         </div>
       </section>
