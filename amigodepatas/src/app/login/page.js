@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Header from '@/components//Header';
-import Footer from '@/components//Footer';
-import { authService } from '@/services/api';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     senha: '',
@@ -30,8 +31,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await authService.login(formData.email, formData.senha);
-      router.push('/');
+      await login(formData.email, formData.senha);
     } catch (error) {
       setError('Email ou senha inválidos');
     } finally {

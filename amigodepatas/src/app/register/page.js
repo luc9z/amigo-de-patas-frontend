@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Header from '@/components/header/Header';
-import Footer from '@/components/footer/Footer';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api';
 
 export default function Register() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -19,7 +21,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -54,8 +56,7 @@ export default function Register() {
         senha: formData.senha,
       });
 
-      await authService.login(formData.email, formData.senha);
-      router.push('/');
+      await login(formData.email, formData.senha);
     } catch (error) {
       if (error.response) {
         try {
