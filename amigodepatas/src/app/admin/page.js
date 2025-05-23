@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [animais, setAnimais] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     especie: 'cachorro',
@@ -23,10 +24,10 @@ export default function AdminPage() {
     vacinado: false,
     castrado: false,
     adotado: false,
-    lar_temporario: false,
+    larTemporario: false,
   });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+
+  const [filters, setFilters] = useState({ nome: '', especie: '', adotado: '', larTemporario: '' });
 
   useEffect(() => {
     if (!isAdmin) {
@@ -39,7 +40,12 @@ export default function AdminPage() {
   const fetchAnimais = async () => {
     try {
       const response = await authService.getAnimais();
-      setAnimais(response);
+      const formatado = response.map((a) => ({
+        ...a,
+        larTemporario: a.lar_temporario ?? false,
+        editando: false,
+      }));
+      setAnimais(formatado);
     } catch {
       setError('Erro ao carregar animais');
     } finally {
@@ -47,25 +53,37 @@ export default function AdminPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (isEditing) {
-        await authService.updateAnimal(editingId, formData);
-      } else {
-        await authService.createAnimal(formData);
-      }
-      fetchAnimais();
-      resetForm();
-    } catch {
-      setError('Erro ao salvar animal');
-    }
+  const toBackend = (animal) => ({
+    ...animal,
+    lar_temporario: animal.larTemporario,
+  });
+
+  const handleFieldChange = (id, field, value) => {
+    setAnimais((prev) =>
+      prev.map((animal) =>
+        animal.id === id ? { ...animal, [field]: value } : animal
+      )
+    );
   };
 
-  const handleEdit = (animal) => {
-    setFormData(animal);
-    setIsEditing(true);
-    setEditingId(animal.id);
+  const toggleEdit = (id) => {
+    setAnimais((prev) =>
+      prev.map((animal) =>
+        animal.id === id ? { ...animal, editando: !animal.editando } : animal
+      )
+    );
+  };
+
+  const cancelEdit = () => fetchAnimais();
+
+  const handleSave = async (id) => {
+    const animal = animais.find((a) => a.id === id);
+    try {
+      await authService.updateAnimal(id, toBackend(animal));
+      toggleEdit(id);
+    } catch {
+      setError('Erro ao salvar alterações');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -79,218 +97,152 @@ export default function AdminPage() {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      nome: '',
-      especie: 'cachorro',
-      porte: 'medio',
-      sexo: 'macho',
-      descricao: '',
-      imagemUrl: '',
-      vacinado: false,
-      castrado: false,
-      adotado: false,
-      lar_temporario: false,
-    });
-    setIsEditing(false);
-    setEditingId(null);
+  const handleCreateAnimal = async () => {
+    try {
+      await authService.createAnimal(toBackend(formData));
+      fetchAnimais();
+      setFormData({
+        nome: '',
+        especie: 'cachorro',
+        porte: 'medio',
+        sexo: 'macho',
+        descricao: '',
+        imagemUrl: '',
+        vacinado: false,
+        castrado: false,
+        adotado: false,
+        larTemporario: false,
+      });
+      setShowForm(false);
+    } catch {
+      setError('Erro ao cadastrar animal');
+    }
   };
 
-  if (!isAdmin) {
-    return null;
-  }
+  const animaisFiltrados = animais.filter((a) => {
+    const nomeCond = a.nome.toLowerCase().includes(filters.nome.toLowerCase());
+    const especieCond = filters.especie ? a.especie === filters.especie : true;
+    const adotadoCond = filters.adotado ? a.adotado === (filters.adotado === 'sim') : true;
+    const larCond = filters.larTemporario ? a.larTemporario === (filters.larTemporario === 'sim') : true;
+    return nomeCond && especieCond && adotadoCond && larCond;
+  });
 
-  if (loading) {
-    return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl">Carregando...</div>
-        </div>
-    );
-  }
+  if (!isAdmin) return null;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-xl">Carregando...</div></div>;
 
   return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow bg-gray-50 py-10 px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-bold mb-4 text-center text-black">
-                {isEditing ? 'Editar Animal' : 'Adicionar Novo Animal'}
-              </h2>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+      <main className="flex-grow py-10 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold mb-6 text-pink-600 text-center">Painel de Administração</h2>
 
-              {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4">
-                    {error}
-                  </div>
-              )}
+          {error && <div className="bg-red-100 text-red-800 px-4 py-2 mb-4 rounded">{error}</div>}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">Nome</label>
-                    <input
-                        type="text"
-                        value={formData.nome}
-                        onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                        required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">Espécie</label>
-                    <select
-                        value={formData.especie}
-                        onChange={(e) => setFormData({ ...formData, especie: e.target.value })}
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                    >
-                      <option value="cachorro">Cachorro</option>
-                      <option value="gato">Gato</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">Porte</label>
-                    <select
-                        value={formData.porte}
-                        onChange={(e) => setFormData({ ...formData, porte: e.target.value })}
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                    >
-                      <option value="pequeno">Pequeno</option>
-                      <option value="medio">Médio</option>
-                      <option value="grande">Grande</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">Sexo</label>
-                    <select
-                        value={formData.sexo}
-                        onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                    >
-                      <option value="macho">Macho</option>
-                      <option value="femea">Fêmea</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">Descrição</label>
-                    <textarea
-                        value={formData.descricao}
-                        onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                        rows="3"
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-1">URL da Imagem</label>
-                    <input
-                        type="url"
-                        value={formData.imagemUrl}
-                        onChange={(e) => setFormData({ ...formData, imagemUrl: e.target.value })}
-                        className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 shadow-sm focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition"
-                    />
-                  </div>
-                  <div className="flex gap-6 items-center flex-wrap">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                          type="checkbox"
-                          checked={formData.vacinado}
-                          onChange={(e) => setFormData({ ...formData, vacinado: e.target.checked })}
-                          className="h-6 w-6 rounded border-gray-300 text-pink-500 focus:ring-pink-400"
-                      />
-                      <span className="text-sm text-gray-700">Vacinado</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                          type="checkbox"
-                          checked={formData.castrado}
-                          onChange={(e) => setFormData({ ...formData, castrado: e.target.checked })}
-                          className="h-6 w-6 rounded border-gray-300 text-pink-500 focus:ring-pink-400"
-                      />
-                      <span className="text-sm text-gray-700">Castrado</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                          type="checkbox"
-                          checked={formData.adotado}
-                          onChange={(e) => setFormData({ ...formData, adotado: e.target.checked })}
-                          className="h-6 w-6 rounded border-gray-300 text-green-500 focus:ring-green-400"
-                      />
-                      <span className="text-sm text-gray-700">Adotado</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                          type="checkbox"
-                          checked={formData.lar_temporario}
-                          onChange={(e) => setFormData({ ...formData, lar_temporario: e.target.checked })}
-                          className="h-6 w-6 rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
-                      />
-                      <span className="text-sm text-gray-700">Lar Temporário</span>
-                    </label>
-                  </div>
-                </div>
-                <div className="flex justify-center gap-2 mt-4">
-                  {isEditing && (
-                      <button
-                          type="button"
-                          onClick={resetForm}
-                          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium"
-                      >
-                        Cancelar
-                      </button>
-                  )}
-                  <button
-                      type="submit"
-                      className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition font-semibold shadow"
-                  >
-                    {isEditing ? 'Salvar Alterações' : 'Adicionar Animal'}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-              <h2 className="text-2xl font-bold mb-4">Lista de Animais</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {animais.map((animal) => (
-                    <div key={animal.id} className="border border-gray-200 rounded-2xl p-4 shadow hover:shadow-lg transition bg-gray-50 flex flex-col">
-                      {animal.imagemUrl && (
-                          <img
-                              src={animal.imagemUrl}
-                              alt={animal.nome}
-                              className="w-full h-48 object-cover rounded-xl mb-4 border border-gray-200"
-                          />
-                      )}
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">{animal.nome}</h3>
-                      <p className="text-gray-600 mb-2 line-clamp-2">{animal.descricao}</p>
-                      <div className="mt-auto text-sm text-gray-500 space-y-1">
-                        <p>Espécie: <span className="font-medium text-gray-700">{animal.especie}</span></p>
-                        <p>Porte: <span className="font-medium text-gray-700">{animal.porte}</span></p>
-                        <p>Sexo: <span className="font-medium text-gray-700">{animal.sexo}</span></p>
-                        <p>Vacinado: <span className="font-medium text-gray-700">{animal.vacinado ? 'Sim' : 'Não'}</span></p>
-                        <p>Castrado: <span className="font-medium text-gray-700">{animal.castrado ? 'Sim' : 'Não'}</span></p>
-                        <p>Adotado: <span className="font-medium text-gray-700">{animal.adotado ? 'Sim' : 'Não'}</span></p>
-                        <p>Lar Temporário: <span className="font-medium text-gray-700">{animal.lar_temporario ? 'Sim' : 'Não'}</span></p>
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <button
-                            onClick={() => handleEdit(animal)}
-                            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium transition"
-                        >
-                          Editar
-                        </button>
-                        <button
-                            onClick={() => handleDelete(animal.id)}
-                            className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition"
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    </div>
-                ))}
-              </div>
-            </div>
+          <div className="text-center mb-6">
+            <button onClick={() => setShowForm(!showForm)} className="px-6 py-2 bg-pink-600 text-white rounded-xl shadow hover:bg-pink-700 transition font-semibold">
+              {showForm ? 'Fechar Cadastro' : 'Cadastrar Animal'}
+            </button>
           </div>
-        </main>
-        <Footer />
-      </div>
+
+          {showForm && (
+            <div className="bg-white border border-gray-200 rounded-2xl shadow p-6 mb-10 max-w-2xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" placeholder="Nome" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700" />
+                <input type="url" placeholder="URL da Imagem" value={formData.imagemUrl} onChange={(e) => setFormData({ ...formData, imagemUrl: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700" />
+                <select value={formData.especie} onChange={(e) => setFormData({ ...formData, especie: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700">
+                  <option value="cachorro">Cachorro</option>
+                  <option value="gato">Gato</option>
+                </select>
+                <select value={formData.porte} onChange={(e) => setFormData({ ...formData, porte: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700">
+                  <option value="pequeno">Pequeno</option>
+                  <option value="medio">Médio</option>
+                  <option value="grande">Grande</option>
+                </select>
+                <select value={formData.sexo} onChange={(e) => setFormData({ ...formData, sexo: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700">
+                  <option value="macho">Macho</option>
+                  <option value="femea">Fêmea</option>
+                </select>
+                <textarea placeholder="Descrição" value={formData.descricao} onChange={(e) => setFormData({ ...formData, descricao: e.target.value })} className="border border-gray-300 px-3 py-2 rounded-lg text-gray-700 md:col-span-2" rows={3} />
+                <div className="flex gap-6 flex-wrap md:col-span-2 mt-2 text-gray-700">
+                  <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={formData.vacinado} onChange={(e) => setFormData({ ...formData, vacinado: e.target.checked })} /> Vacinado</label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={formData.castrado} onChange={(e) => setFormData({ ...formData, castrado: e.target.checked })} /> Castrado</label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={formData.adotado} onChange={(e) => setFormData({ ...formData, adotado: e.target.checked })} /> Adotado</label>
+                  <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={formData.larTemporario} onChange={(e) => setFormData({ ...formData, larTemporario: e.target.checked })} /> Lar Temporário</label>
+                </div>
+              </div>
+              <button onClick={handleCreateAnimal} className="mt-6 bg-pink-600 text-white px-6 py-2 rounded-xl hover:bg-pink-700 transition font-semibold">Salvar</button>
+            </div>
+          )}
+
+          <div className="bg-white border rounded-xl p-4 mb-8 flex flex-wrap gap-4 justify-center">
+            <input type="text" placeholder="Buscar por nome..." className="border px-3 py-2 rounded text-black" value={filters.nome} onChange={(e) => setFilters({ ...filters, nome: e.target.value })} />
+            <select className="border px-3 py-2 rounded text-black" value={filters.especie} onChange={(e) => setFilters({ ...filters, especie: e.target.value })}>
+              <option value="">Todas as espécies</option>
+              <option value="cachorro">Cachorro</option>
+              <option value="gato">Gato</option>
+            </select>
+            <select className="border px-3 py-2 rounded text-black" value={filters.adotado} onChange={(e) => setFilters({ ...filters, adotado: e.target.value })}>
+              <option value="">Todos</option>
+              <option value="sim">Adotados</option>
+              <option value="nao">Não Adotados</option>
+            </select>
+            <select className="border px-3 py-2 rounded text-black" value={filters.larTemporario} onChange={(e) => setFilters({ ...filters, larTemporario: e.target.value })}>
+              <option value="">Todos</option>
+              <option value="sim">Lar Temporário</option>
+              <option value="nao">Sem Lar Temporário</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {animaisFiltrados.map((animal) => (
+              <div key={animal.id} className="border border-gray-200 rounded-2xl p-4 shadow bg-white flex flex-col">
+                {animal.imagemUrl && (
+                  <img src={animal.imagemUrl} alt={animal.nome} className="w-full h-48 object-cover rounded-xl mb-4" />
+                )}
+                {animal.editando ? (
+                  <>
+                    <input className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.nome} onChange={(e) => handleFieldChange(animal.id, 'nome', e.target.value)} />
+                    <textarea className="mb-2 border px-3 py-2 rounded text-gray-800" rows={2} value={animal.descricao} onChange={(e) => handleFieldChange(animal.id, 'descricao', e.target.value)} />
+                    <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.especie} onChange={(e) => handleFieldChange(animal.id, 'especie', e.target.value)}><option value="cachorro">Cachorro</option><option value="gato">Gato</option></select>
+                    <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.porte} onChange={(e) => handleFieldChange(animal.id, 'porte', e.target.value)}><option value="pequeno">Pequeno</option><option value="medio">Médio</option><option value="grande">Grande</option></select>
+                    <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.sexo} onChange={(e) => handleFieldChange(animal.id, 'sexo', e.target.value)}><option value="macho">Macho</option><option value="femea">Fêmea</option></select>
+                    <div className="flex flex-wrap gap-4 text-gray-700 mb-2">
+                      <label><input type="checkbox" className="w-5 h-5" checked={!!animal.vacinado} onChange={(e) => handleFieldChange(animal.id, 'vacinado', e.target.checked)} /> Vacinado</label>
+                      <label><input type="checkbox" className="w-5 h-5" checked={!!animal.castrado} onChange={(e) => handleFieldChange(animal.id, 'castrado', e.target.checked)} /> Castrado</label>
+                      <label><input type="checkbox" className="w-5 h-5" checked={!!animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} /> Adotado</label>
+                      <label><input type="checkbox" className="w-5 h-5" checked={!!animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} /> Lar Temporário</label>
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <button onClick={() => handleSave(animal.id)} className="bg-pink-600 text-white px-4 py-1 rounded-xl hover:bg-pink-700">Salvar</button>
+                      <button onClick={cancelEdit} className="bg-gray-300 text-gray-800 px-4 py-1 rounded-xl hover:bg-gray-400">Cancelar</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">{animal.nome}</h3>
+                    <p className="text-gray-600 mb-2 line-clamp-2">{animal.descricao}</p>
+                    <div className="text-sm text-gray-500 space-y-1">
+                      <p>Espécie: {animal.especie}</p>
+                      <p>Porte: {animal.porte}</p>
+                      <p>Sexo: {animal.sexo}</p>
+                      <p>Vacinado: {animal.vacinado ? 'Sim' : 'Não'}</p>
+                      <p>Castrado: {animal.castrado ? 'Sim' : 'Não'}</p>
+                      <p>Adotado: {animal.adotado ? 'Sim' : 'Não'}</p>
+                      <p>Lar Temporário: {animal.larTemporario ? 'Sim' : 'Não'}</p>
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                      <button onClick={() => toggleEdit(animal.id)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Editar</button>
+                      <button onClick={() => handleDelete(animal.id)} className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Excluir</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 }

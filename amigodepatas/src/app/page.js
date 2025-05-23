@@ -53,18 +53,25 @@ function CardsSlider({ cards, tipo, isAdotados }) {
               {isAdotados && (
                 <span className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20">Adotado</span>
               )}
+              {animal.lar_temporario && (
+                <span className="absolute top-2 right-2 bg-yellow-300 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow z-20">
+                Lar Temporário
+                </span>
+              )}
             </div>
 
             <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
               <div>
                 <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
-                <p class="descricao-limitada">{ animal.descricao }</p>
+                <p className="descricao-limitada">{ animal.descricao }</p>
+                
                 <div className="flex justify-center gap-2 mb-3 flex-wrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.vacinado ? "Vacinado" : "Não vacinado"}
                   </span>
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.castrado ? "Castrado" : "Não castrado"}
+                    
                   </span>
                 </div>
               </div>

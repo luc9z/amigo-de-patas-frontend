@@ -102,14 +102,36 @@ export default function AnimalPage() {
             <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full capitalize">
               {animal.porte}
             </span>
+            {animal.lar_temporario && (
+              <span className="bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">
+                Lar Temporário
+              </span>
+            )}
           </div>
 
-          <button 
-            className={`font-medium px-6 py-2 rounded-md transition ${animal.adotado ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-pink-200 text-gray-800 hover:bg-pink-300'}`}
-            disabled={animal.adotado}
-          >
-            {animal.adotado ? 'Este animal já foi adotado' : 'Quero Adotar este Animal'}
-          </button>
+          {animal.adotado ? (
+            <button 
+              className="font-medium px-6 py-2 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed transition"
+              disabled
+            >
+              Este animal já foi adotado
+            </button>
+          ) : (
+            <div className="flex flex-col gap-3 items-center">
+              <button 
+                className="font-medium px-6 py-2 rounded-md bg-pink-200 text-gray-800 hover:bg-pink-300 transition-all duration-300"
+              >
+                Quero Adotar este Animal
+              </button>
+              {animal.lar_temporario && (
+                <button 
+                  className="font-medium px-6 py-2 rounded-md bg-yellow-300 text-gray-800 hover:bg-yellow-400 transition-all duration-300"
+                >
+                  Quero ser Lar Temporário
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
