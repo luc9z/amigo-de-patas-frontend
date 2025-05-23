@@ -6,7 +6,6 @@ export default function Footer() {
       backgroundColor: '#fafafa',
       padding: '2rem 1rem',
       borderTop: '1px solid #eee',
-      marginTop: '2rem'
     }}>
       <div style={{
         maxWidth: '1200px',

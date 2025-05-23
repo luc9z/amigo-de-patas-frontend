@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from '@/components/header/Header';
-import Footer from '@/components/footer/Footer';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { authService } from '@/services/api';
-import FilterPanel from '@/components/filterPanel/filterPanel';
+import FilterPanel from '@/app/components/filterPanel';
 import Link from 'next/link';
+import { Menu } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 export default function AnimaisPage() {
     const [animais, setAnimais] = useState([]);
@@ -16,11 +18,21 @@ export default function AnimaisPage() {
         porte: '',
         sexo: '',
         vacinado: null,
-        castrado: null
+        castrado: null,
+        lar_temporario: null
     });
+    const [showFilters, setShowFilters] = useState(false);
+    const searchParams = useSearchParams();
 
     useEffect(() => {
+        // Lê a query string para aplicar filtro inicial
+        const especie = searchParams.get('especie');
+        if (especie) {
+            setFilters((prev) => ({ ...prev, especie }));
+            setShowFilters(true);
+        }
         fetchAnimais();
+        // eslint-disable-next-line
     }, []);
 
     useEffect(() => {
@@ -29,12 +41,25 @@ export default function AnimaisPage() {
         }
     }, [filters, allAnimais]);
 
+    function gerarSlugsUnicos(animais) {
+        const contador = {};
+        return animais.map((animal) => {
+            const nomeBase = animal.nome.toLowerCase().replace(/\s+/g, "");
+            contador[nomeBase] = (contador[nomeBase] || 0) + 1;
+            const slug = `${nomeBase}${contador[nomeBase]}`;
+            return { ...animal, slug, especie: animal.especie.toLowerCase() };
+        });
+    }
+
     const fetchAnimais = async () => {
         setLoading(true);
         try {
             const response = await authService.getAnimais();
-            setAnimais(response);
-            setAllAnimais(response);
+            const animaisComSlug = gerarSlugsUnicos(response);
+            // Filtra apenas animais NÃO adotados
+            const naoAdotados = animaisComSlug.filter(a => !a.adotado);
+            setAnimais(naoAdotados);
+            setAllAnimais(naoAdotados);
         } catch (error) {
             console.error('Erro ao carregar animais:', error);
         } finally {
@@ -49,7 +74,8 @@ export default function AnimaisPage() {
                 (filters.porte ? animal.porte === filters.porte : true) &&
                 (filters.sexo ? animal.sexo === filters.sexo : true) &&
                 (filters.vacinado !== null ? animal.vacinado === filters.vacinado : true) &&
-                (filters.castrado !== null ? animal.castrado === filters.castrado : true)
+                (filters.castrado !== null ? animal.castrado === filters.castrado : true) &&
+                (filters.lar_temporario !== null ? animal.lar_temporario === filters.lar_temporario : true)
             );
         });
         setAnimais(filtered);
@@ -74,8 +100,19 @@ export default function AnimaisPage() {
 
                     <h1 className="text-3xl font-bold mb-4">Animais Disponíveis para Adoção</h1>
 
-                    <div className="mb-8">
-                        <FilterPanel onFilterChange={handleFilterChange} />
+                    <div className="mb-8 flex gap-4 flex-col">
+                        <button
+                            className="w-[10vh] flex gap-2 px-4 py-2 bg-gray-100 rounded-md shadow hover:bg-gray-200 transition text-gray-700"
+                            onClick={() => setShowFilters((prev) => !prev)}
+                        >
+                            <Menu size={22} />
+                            <span className="font-medium">Filtros</span>
+                        </button>
+                        {showFilters && (
+                            <div className="w-full max-w-lg">
+                                <FilterPanel onFilterChange={handleFilterChange} />
+                            </div>
+                        )}
                     </div>
 
                     {loading ? (
@@ -101,12 +138,12 @@ export default function AnimaisPage() {
                         {animal.castrado ? 'Castrado' : 'Não Castrado'}
                       </span>
                                         </div>
-                                        <a
-                                            href={`/animais/${animal.id}`}
+                                        <Link
+                                            href={`/${animal.especie.toLowerCase()}/${animal.slug}`}
                                             className="block text-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
                                         >
                                             Conhecer {animal.nome}
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

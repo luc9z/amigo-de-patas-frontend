@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuração básica
-};
+  images: {
+    unoptimized: true, // 👈 permite qualquer domínio, sem otimização
+  }
+}
 
 export default nextConfig;
