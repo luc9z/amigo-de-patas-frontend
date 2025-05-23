@@ -6,7 +6,6 @@ import Footer from '../components/Footer';
 import { authService } from '@/services/api';
 import FilterPanel from '@/app/components/filterPanel';
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 export default function AnimaisPage() {
@@ -19,20 +18,17 @@ export default function AnimaisPage() {
         sexo: '',
         vacinado: null,
         castrado: null,
-        lar_temporario: null
+        lar_temporario: null,
+        adotado: null,
     });
-    const [showFilters, setShowFilters] = useState(false);
     const searchParams = useSearchParams();
 
     useEffect(() => {
-        // Lê a query string para aplicar filtro inicial
         const especie = searchParams.get('especie');
         if (especie) {
             setFilters((prev) => ({ ...prev, especie }));
-            setShowFilters(true);
         }
         fetchAnimais();
-        // eslint-disable-next-line
     }, []);
 
     useEffect(() => {
@@ -56,7 +52,6 @@ export default function AnimaisPage() {
         try {
             const response = await authService.getAnimais();
             const animaisComSlug = gerarSlugsUnicos(response);
-            // Filtra apenas animais NÃO adotados
             const naoAdotados = animaisComSlug.filter(a => !a.adotado);
             setAnimais(naoAdotados);
             setAllAnimais(naoAdotados);
@@ -75,7 +70,8 @@ export default function AnimaisPage() {
                 (filters.sexo ? animal.sexo === filters.sexo : true) &&
                 (filters.vacinado !== null ? animal.vacinado === filters.vacinado : true) &&
                 (filters.castrado !== null ? animal.castrado === filters.castrado : true) &&
-                (filters.lar_temporario !== null ? animal.lar_temporario === filters.lar_temporario : true)
+                (filters.lar_temporario !== null ? animal.lar_temporario === filters.lar_temporario : true) &&
+                (filters.adotado !== null ? animal.adotado === filters.adotado : true)
             );
         });
         setAnimais(filtered);
@@ -91,56 +87,53 @@ export default function AnimaisPage() {
 
             <main className="flex-grow py-8">
                 <div className="container mx-auto px-6">
-                    <div className="mb-4">
-                        <Link href="/" className="text-blue-500 hover:underline">
+                    <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+                        <Link href="/" className="text-blue-500 hover:underline font-medium">
                             Página Inicial
                         </Link>
-                        <span> / Animais</span>
+                        <span className="mx-1 text-gray-400">/</span>
+                        <span className="text-gray-700 font-semibold">Animais</span>
                     </div>
 
-                    <h1 className="text-3xl font-bold mb-4">Animais Disponíveis para Adoção</h1>
+                    <h1 className="text-3xl font-bold mb-4 text-black">Animais Disponíveis para Adoção</h1>
 
-                    <div className="mb-8 flex gap-4 flex-col">
-                        <button
-                            className="w-[10vh] flex gap-2 px-4 py-2 bg-gray-100 rounded-md shadow hover:bg-gray-200 transition text-gray-700"
-                            onClick={() => setShowFilters((prev) => !prev)}
-                        >
-                            <Menu size={22} />
-                            <span className="font-medium">Filtros</span>
-                        </button>
-                        {showFilters && (
-                            <div className="w-full max-w-lg">
-                                <FilterPanel onFilterChange={handleFilterChange} />
-                            </div>
-                        )}
+                    <div className="mb-8 flex justify-start">
+                        <div className="w-full max-w-xs">
+                            <FilterPanel onFilterChange={handleFilterChange} />
+                        </div>
                     </div>
 
                     {loading ? (
                         <div className="text-center">Carregando...</div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {animais.map((animal) => (
-                                <div key={animal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                                    <img
-                                        src={animal.imagemUrl}
-                                        alt={animal.nome}
-                                        className="w-full h-64 object-cover"
-                                    />
-                                    <div className="p-4">
-                                        <h3 className="text-xl font-semibold mb-2">{animal.nome}</h3>
-                                        <p className="text-gray-600 mb-2">Espécie: {animal.especie}</p>
-                                        <p className="text-gray-600 mb-4">Porte: {animal.porte}</p>
-                                        <div className="flex space-x-2 mb-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${animal.vacinado ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-                        {animal.vacinado ? 'Vacinado' : 'Não Vacinado'}
-                      </span>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${animal.castrado ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-600'}`}>
-                        {animal.castrado ? 'Castrado' : 'Não Castrado'}
-                      </span>
+                                <div key={animal.id} className="w-72 h-[420px] border border-gray-200 rounded-xl shadow-md flex flex-col overflow-hidden bg-white transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in mx-auto">
+                                    <div className="w-full h-[200px] relative">
+                                        <img
+                                            src={animal.imagemUrl || '/placeholder.jpg'}
+                                            alt={animal.nome}
+                                            className="w-full h-[200px] object-cover rounded-t-xl"
+                                        />
+                                        {animal.lar_temporario && (
+                                            <span className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1">
+                                                🏠 Lar Temporário
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
+                                        <div>
+                                            <h3 className="text-lg font-semibold mb-1 text-black">{animal.nome}</h3>
+                                            <p className="descricao-limitada mb-2 text-gray-700">Espécie: {animal.especie}</p>
+                                            <p className="descricao-limitada mb-2 text-gray-600">Porte: {animal.porte}</p>
+                                            <div className="flex justify-center gap-2 mb-3 flex-wrap">
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300">{animal.vacinado ? 'Vacinado' : 'Não vacinado'}</span>
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300">{animal.castrado ? 'Castrado' : 'Não castrado'}</span>
+                                            </div>
                                         </div>
                                         <Link
                                             href={`/${animal.especie.toLowerCase()}/${animal.slug}`}
-                                            className="block text-center bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                                            className="mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition-colors duration-300 bg-pink-200 text-gray-800 hover:bg-pink-300"
                                         >
                                             Conhecer {animal.nome}
                                         </Link>

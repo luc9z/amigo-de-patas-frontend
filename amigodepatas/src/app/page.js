@@ -14,13 +14,13 @@ const carouselImages = [
   "/banners/banner3.jpg",
 ];
 
-function CardsSlider({ cards, tipo, isAdotados }) {
+function CardsSlider({ cards, tipo }) {
   const scrollRef = useRef(null);
 
   const scroll = (dir) => {
     if (scrollRef.current) {
       const amount = 280;
-      scrollRef.current.scrollBy({ left: (dir === "left" ? -amount : amount), behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
     }
   };
 
@@ -32,72 +32,54 @@ function CardsSlider({ cards, tipo, isAdotados }) {
       >
         <ChevronLeft />
       </button>
-
       <div
         ref={scrollRef}
         className="flex gap-6 overflow-x-auto scroll-smooth px-6 py-2 scrollbar-hide"
       >
-        {cards.map((animal, i) => {
-          const isAdotado = !!animal.adotado;
-          return (
-            <div
-              key={animal.id || i}
-              className={`w-72 h-[420px] border rounded-xl shadow-md flex flex-col overflow-hidden relative bg-white border-gray-200 transition-transform transition-shadow duration-300 hover:scale-105 hover:shadow-xl group animate-fade-in ${isAdotado ? 'bg-green-50 border-green-300' : ''}`}
-            >
-              <div className="w-full h-[200px] relative">
-                <Image
-                  src={animal.imagemUrl || "/placeholder.jpg"}
-                  alt={animal.nome}
-                  width={288}
-                  height={200}
-                  className="rounded-t-xl object-cover w-full h-full group-hover:brightness-95 transition duration-300"
-                />
-                {isAdotado && (
-                  <span className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1">
-                    🏠 Já tem um lar!
-                  </span>
-                )}
-                {animal.lar_temporario && (
-                  <span className="absolute top-2 right-2 bg-yellow-300 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow z-20">
-                  Lar Temporário
-                  </span>
-                )}
-              </div>
-
-              <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
-                  <p className="descricao-limitada mb-2">{ animal.descricao }</p>
-                  <div className="flex justify-center gap-2 mb-3 flex-wrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                      {animal.vacinado ? "Vacinado" : "Não vacinado"}
-                    </span>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                      {animal.castrado ? "Castrado" : "Não castrado"}
-                    </span>
-                  </div>
-                </div>
-
-                {isAdotado ? (
-                  <div className="mt-2 text-green-700 text-sm font-semibold bg-green-100 rounded-lg px-3 py-2 animate-fade-in">
-                    Estamos felizes por esse pet ter encontrado uma nova família!
-                  </div>
-                ) : (
-                  <Link
-                    href={`/${animal.especie}/${animal.slug}`}
-                    className={`mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition-colors duration-300 bg-pink-200 text-gray-800 hover:bg-pink-300`}
-                  >
-                    Conhecer
-                  </Link>
-                )}
-              </div>
+        {cards.map((animal, i) => (
+          <div
+            key={animal.id || i}
+            className="w-72 h-[420px] border rounded-xl shadow-md flex flex-col overflow-hidden relative bg-white border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in flex-shrink-0"
+          >
+            <div className="w-full h-[200px] relative">
+              <Image
+                src={animal.imagemUrl || "/placeholder.jpg"}
+                alt={animal.nome}
+                width={288}
+                height={200}
+                className="rounded-t-xl object-cover w-full h-full"
+              />
+              {animal.lar_temporario && (
+                <span className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1">
+                  🏠 Lar Temporário
+                </span>
+              )}
             </div>
-          );
-        })}
-
+            <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
+                <p className="descricao-limitada mb-2">{animal.descricao}</p>
+                <div className="flex justify-center gap-2 mb-3 flex-wrap">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                    {animal.vacinado ? "Vacinado" : "Não vacinado"}
+                  </span>
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                    {animal.castrado ? "Castrado" : "Não castrado"}
+                  </span>
+                </div>
+              </div>
+              <Link
+                href={`/${animal.especie}/${animal.slug}`}
+                className="mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition-colors duration-300 bg-pink-200 text-gray-800 hover:bg-pink-300"
+              >
+                Conhecer
+              </Link>
+            </div>
+          </div>
+        ))}
         <Link
           href={`/animais?especie=${tipo}`}
-          className="min-w-[280px] max-w-[280px] h-[420px] bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition"
+          className="min-w-[280px] max-w-[280px] h-[420px] bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition flex-shrink-0"
         >
           <div className="p-6">
             <h3 className="text-base font-semibold text-gray-700 mb-1">Ver todos</h3>
@@ -105,7 +87,6 @@ function CardsSlider({ cards, tipo, isAdotados }) {
           </div>
         </Link>
       </div>
-
       <button
         onClick={() => scroll("right")}
         className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
@@ -149,8 +130,8 @@ export default function Home() {
     });
   }
 
-  const dogCards = animais.filter((a) => a.especie === "cachorro" && a.adotado === false).slice(0, 10);
-  const catCards = animais.filter((a) => a.especie === "gato" && a.adotado === false).slice(0, 10);
+  const dogCards = animais.filter((a) => a.especie === "cachorro" && a.adotado === false).slice(0, 8);
+  const catCards = animais.filter((a) => a.especie === "gato" && a.adotado === false).slice(0, 8);
   const adoptedAnimals = animais
     .filter((a) => a.adotado)
     .sort((a, b) => {

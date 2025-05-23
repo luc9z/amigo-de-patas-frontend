@@ -51,13 +51,28 @@ export default function AdminPage() {
     }
   ]);
 
+  const [banners, setBanners] = useState(["", "", ""]);
+  const [bannerMsg, setBannerMsg] = useState("");
+  const [destaqueIds, setDestaqueIds] = useState([]);
+  const [destaqueMsg, setDestaqueMsg] = useState("");
+  const [cachorrosDisponiveis, setCachorrosDisponiveis] = useState([]);
+
   useEffect(() => {
     if (!isAdmin) {
       router.push('/');
       return;
     }
     fetchAnimais();
+    fetchCachorrosDisponiveis();
   }, [isAdmin, router]);
+
+  useEffect(() => {
+    if (currentTab === 'customizar') {
+      fetchBanners();
+      fetchDestaques();
+      setCachorrosDisponiveis(animais.filter(a => a.especie === 'cachorro' && !a.adotado));
+    }
+  }, [currentTab, animais]);
 
   const fetchAnimais = async () => {
     try {
@@ -72,6 +87,70 @@ export default function AdminPage() {
       setError('Erro ao carregar animais');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCachorrosDisponiveis = async () => {
+    try {
+      const response = await authService.getAnimais();
+      const apenasCachorros = response.filter((a) => a.especie === 'cachorro' && !a.adotado);
+      setCachorrosDisponiveis(apenasCachorros);
+    } catch {
+      setError('Erro ao carregar cachorros disponíveis');
+    }
+  };
+
+  const fetchBanners = async () => {
+    try {
+      const res = await authService.getBanners();
+      setBanners(res.length ? res : ["", "", ""]);
+    } catch {
+      setBanners(["", "", ""]);
+    }
+  };
+  const handleBannerChange = (idx, value) => {
+    setBanners(banners.map((b, i) => (i === idx ? value : b)));
+  };
+  const addBanner = () => {
+    if (banners.length < 3) setBanners([...banners, ""]);
+  };
+  const removeBanner = (idx) => {
+    if (banners.length > 1) setBanners(banners.filter((_, i) => i !== idx));
+  };
+  const saveBanners = async () => {
+    try {
+      await authService.saveBanners(banners.filter(Boolean));
+      setBannerMsg("Banners salvos com sucesso!");
+      setTimeout(() => setBannerMsg(""), 2000);
+    } catch {
+      setBannerMsg("Erro ao salvar banners.");
+    }
+  };
+
+  const fetchDestaques = async () => {
+    try {
+      const res = await authService.getDestaques();
+      setDestaqueIds(res || []);
+    } catch {
+      setDestaqueIds([]);
+    }
+  };
+  const toggleDestaque = (id) => {
+    setDestaqueIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((d) => d !== id)
+        : prev.length < 10
+        ? [...prev, id]
+        : prev
+    );
+  };
+  const saveDestaques = async () => {
+    try {
+      await authService.saveDestaques(destaqueIds);
+      setDestaqueMsg("Destaques salvos com sucesso!");
+      setTimeout(() => setDestaqueMsg(""), 2000);
+    } catch {
+      setDestaqueMsg("Erro ao salvar destaques.");
     }
   };
 
@@ -184,6 +263,12 @@ export default function AdminPage() {
                 onClick={() => setCurrentTab('candidaturas')}
               >
                 Ver Candidaturas
+              </button>
+              <button
+                className={`text-left px-4 py-2 rounded-xl font-semibold transition border border-transparent hover:bg-pink-50 ${currentTab === 'customizar' ? 'bg-pink-100 text-pink-700 border-pink-300' : 'text-gray-700'}`}
+                onClick={() => setCurrentTab('customizar')}
+              >
+                Customizar Site
               </button>
             </nav>
           </aside>
@@ -308,6 +393,69 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {currentTab === 'customizar' && (
+              <div className="space-y-12">
+                {/* BANNERS DO CARROSSEL */}
+                <section className="bg-white border border-gray-200 rounded-2xl shadow p-6 mb-10">
+                  <h2 className="text-xl font-bold mb-4 text-pink-600">Banners do Carrossel</h2>
+                  <p className="mb-4 text-gray-600">Adicione até 3 URLs de imagens para o carrossel da página inicial.</p>
+                  <div className="flex flex-col gap-4 max-w-xl">
+                    {banners.map((url, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="url"
+                          className="border px-3 py-2 rounded w-full"
+                          placeholder={`URL do banner #${idx + 1}`}
+                          value={url}
+                          onChange={e => handleBannerChange(idx, e.target.value)}
+                        />
+                        <button
+                          className="bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200"
+                          onClick={() => removeBanner(idx)}
+                          disabled={banners.length === 1}
+                        >Remover</button>
+                      </div>
+                    ))}
+                    {banners.length < 3 && (
+                      <button
+                        className="mt-2 bg-blue-100 text-blue-700 px-4 py-1 rounded hover:bg-blue-200"
+                        onClick={addBanner}
+                      >Adicionar Banner</button>
+                    )}
+                  </div>
+                  <button
+                    className="mt-6 bg-pink-600 text-white px-6 py-2 rounded-xl hover:bg-pink-700 transition font-semibold"
+                    onClick={saveBanners}
+                  >Salvar</button>
+                  {bannerMsg && <div className="mt-3 text-green-600 font-semibold">{bannerMsg}</div>}
+                </section>
+
+                {/* CACHORROS EM DESTAQUE */}
+                <section className="bg-white border border-gray-200 rounded-2xl shadow p-6">
+                  <h2 className="text-xl font-bold mb-4 text-pink-600">Cachorros em Destaque na Home</h2>
+                  <p className="mb-4 text-gray-600">Selecione até 10 cachorros não adotados para aparecerem em destaque na home.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
+                    {cachorrosDisponiveis.map((dog) => (
+                      <label key={dog.id} className="flex items-center gap-3 border rounded-lg p-2 cursor-pointer hover:bg-pink-50">
+                        <input
+                          type="checkbox"
+                          checked={destaqueIds.includes(dog.id)}
+                          onChange={() => toggleDestaque(dog.id)}
+                          disabled={!destaqueIds.includes(dog.id) && destaqueIds.length >= 10}
+                        />
+                        <img src={dog.imagemUrl || '/placeholder.jpg'} alt={dog.nome} className="w-14 h-14 object-cover rounded" />
+                        <span className="font-medium text-gray-700">{dog.nome}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    className="mt-2 bg-pink-600 text-white px-6 py-2 rounded-xl hover:bg-pink-700 transition font-semibold"
+                    onClick={saveDestaques}
+                  >Salvar</button>
+                  {destaqueMsg && <div className="mt-3 text-green-600 font-semibold">{destaqueMsg}</div>}
+                </section>
               </div>
             )}
           </div>
