@@ -82,9 +82,11 @@ export default function AdminPage() {
 
   const handleFieldChange = (id, field, value) => {
     setAnimais((prev) =>
-      prev.map((animal) =>
-        animal.id === id ? { ...animal, [field]: value } : animal
-      )
+      prev.map((animal) => {
+        if (animal.id !== id) return animal;
+        if (!animal.editando) return animal;
+        return { ...animal, [`_edit_${field}`]: value };
+      })
     );
   };
 
@@ -100,9 +102,21 @@ export default function AdminPage() {
 
   const handleSave = async (id) => {
     const animal = animais.find((a) => a.id === id);
+    const animalEditado = { ...animal };
+    Object.keys(animal).forEach((key) => {
+      if (key.startsWith('_edit_')) {
+        const realKey = key.replace('_edit_', '');
+        animalEditado[realKey] = animal[key];
+        delete animalEditado[key];
+      }
+    });
     try {
-      await authService.updateAnimal(id, toBackend(animal));
-      toggleEdit(id);
+      await authService.updateAnimal(id, toBackend(animalEditado));
+      setAnimais((prev) =>
+        prev.map((a) =>
+          a.id === id ? { ...animalEditado, editando: false } : a
+        )
+      );
     } catch {
       setError('Erro ao salvar alterações');
     }
@@ -247,10 +261,10 @@ export default function AdminPage() {
                           <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.porte} onChange={(e) => handleFieldChange(animal.id, 'porte', e.target.value)}><option value="pequeno">Pequeno</option><option value="medio">Médio</option><option value="grande">Grande</option></select>
                           <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.sexo} onChange={(e) => handleFieldChange(animal.id, 'sexo', e.target.value)}><option value="macho">Macho</option><option value="femea">Fêmea</option></select>
                           <div className="flex flex-wrap gap-4 text-gray-700 mb-2">
-                            <label><input type="checkbox" className="w-5 h-5" checked={!!animal.vacinado} onChange={(e) => handleFieldChange(animal.id, 'vacinado', e.target.checked)} /> Vacinado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={!!animal.castrado} onChange={(e) => handleFieldChange(animal.id, 'castrado', e.target.checked)} /> Castrado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={!!animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} /> Adotado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={!!animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} /> Lar Temporário</label>
+                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_vacinado !== undefined ? animal._edit_vacinado : animal.vacinado} onChange={(e) => handleFieldChange(animal.id, 'vacinado', e.target.checked)} /> Vacinado</label>
+                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_castrado !== undefined ? animal._edit_castrado : animal.castrado} onChange={(e) => handleFieldChange(animal.id, 'castrado', e.target.checked)} /> Castrado</label>
+                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_adotado !== undefined ? animal._edit_adotado : animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} /> Adotado</label>
+                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_larTemporario !== undefined ? animal._edit_larTemporario : animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} /> Lar Temporário</label>
                           </div>
                           <div className="mt-2 flex gap-2">
                             <button onClick={() => handleSave(animal.id)} className="bg-pink-600 text-white px-4 py-1 rounded-xl hover:bg-pink-700">Salvar</button>
