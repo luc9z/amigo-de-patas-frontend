@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import authService from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Image from "next/image";
@@ -13,7 +14,11 @@ export default function AnimalPage() {
   const { slug, especie } = useParams();
   const [animal, setAnimal] = useState(null);
   const [outros, setOutros] = useState([]);
+  const [candidaturas, setCandidaturas] = useState([]); // Simulação local
+  const [mensagem, setMensagem] = useState("");
+  const [loadingCandidatura, setLoadingCandidatura] = useState(false);
   const scrollRef = useRef(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function carregarAnimal() {
@@ -32,6 +37,17 @@ export default function AnimalPage() {
     carregarAnimal();
   }, [slug, especie]);
 
+  // Simula buscar candidaturas do usuário para este animal
+  useEffect(() => {
+    if (animal && user) {
+      // Simule candidaturas já feitas (poderia vir do backend)
+      // Exemplo: [{animal_id, user_id, tipo, data}]
+      setCandidaturas([
+        // { animal_id: animal.id, user_id: user.id, tipo: "adocao", data: "2024-05-23" }
+      ]);
+    }
+  }, [animal, user]);
+
   function gerarSlugsUnicos(animais) {
     const contador = {};
     return animais.map((animal) => {
@@ -49,6 +65,37 @@ export default function AnimalPage() {
         left: dir === "left" ? -amount : amount,
         behavior: "smooth",
       });
+    }
+  };
+
+  const jaCandidatado = (tipo) => {
+    if (!user || !animal) return false;
+    return candidaturas.some(
+      (c) => c.animal_id === animal.id && c.user_id === user.id && c.tipo === tipo
+    );
+  };
+
+  const handleCandidatar = async (tipo) => {
+    if (!user || !animal) return;
+    setLoadingCandidatura(true);
+    setMensagem("");
+    try {
+      // Simula requisição POST
+      await new Promise((res) => setTimeout(res, 800));
+      // Aqui seria: await authService.candidatar({ animal_id: animal.id, user_id: user.id, tipo });
+      setCandidaturas((prev) => [
+        ...prev,
+        { animal_id: animal.id, user_id: user.id, tipo, data: new Date().toISOString() },
+      ]);
+      setMensagem(
+        tipo === "adocao"
+          ? "Candidatura para adoção enviada com sucesso!"
+          : "Candidatura para lar temporário enviada com sucesso!"
+      );
+    } catch {
+      setMensagem("Erro ao enviar candidatura. Tente novamente.");
+    } finally {
+      setLoadingCandidatura(false);
     }
   };
 
@@ -118,17 +165,26 @@ export default function AnimalPage() {
             </button>
           ) : (
             <div className="flex flex-col gap-3 items-center">
-              <button 
-                className="font-medium px-6 py-2 rounded-md bg-pink-200 text-gray-800 hover:bg-pink-300 transition-all duration-300"
+              <button
+                className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("adocao") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-pink-200 text-gray-800 hover:bg-pink-300"}`}
+                disabled={jaCandidatado("adocao") || loadingCandidatura}
+                onClick={() => handleCandidatar("adocao")}
               >
-                Quero Adotar este Animal
+                {jaCandidatado("adocao") ? "Já se candidatou para adoção" : loadingCandidatura ? "Enviando..." : "Quero Adotar este Animal"}
               </button>
               {animal.lar_temporario && (
-                <button 
-                  className="font-medium px-6 py-2 rounded-md bg-yellow-300 text-gray-800 hover:bg-yellow-400 transition-all duration-300"
+                <button
+                  className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("lar_temporario") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-yellow-300 text-gray-800 hover:bg-yellow-400"}`}
+                  disabled={jaCandidatado("lar_temporario") || loadingCandidatura}
+                  onClick={() => handleCandidatar("lar_temporario")}
                 >
-                  Quero ser Lar Temporário
+                  {jaCandidatado("lar_temporario") ? "Já se candidatou para lar temporário" : loadingCandidatura ? "Enviando..." : "Quero ser Lar Temporário"}
                 </button>
+              )}
+              {mensagem && (
+                <div className="mt-3 text-green-700 bg-green-100 px-4 py-2 rounded-xl text-sm font-medium">
+                  {mensagem}
+                </div>
               )}
             </div>
           )}
