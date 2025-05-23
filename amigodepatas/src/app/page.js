@@ -58,7 +58,7 @@ function CardsSlider({ cards, tipo, isAdotados }) {
             <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
               <div>
                 <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
-                <p className="text-sm text-gray-600 mb-2">{animal.descricao}</p>
+                <p class="descricao-limitada">{ animal.descricao }</p>
                 <div className="flex justify-center gap-2 mb-3 flex-wrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.vacinado ? "Vacinado" : "Não vacinado"}
