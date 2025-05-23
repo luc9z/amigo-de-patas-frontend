@@ -40,15 +40,15 @@ function CardsSlider({ cards, tipo, isAdotados }) {
         {cards.map((animal, i) => (
           <div
             key={animal.id || i}
-            className={`min-w-[260px] h-auto border rounded-xl shadow-md flex flex-col overflow-hidden ${isAdotados ? 'bg-green-50 border-green-300 relative' : 'bg-white border-gray-200'}`}
+            className={`min-w-[280px] max-w-[280px] h-[420px] border rounded-xl shadow-md flex flex-col overflow-hidden relative bg-white border-gray-200 transition-transform transition-shadow duration-300 hover:scale-105 hover:shadow-xl group`}
           >
-            <div className="w-full h-auto relative">
+            <div className="w-full h-[200px] relative">
               <Image
                 src={animal.imagemUrl || "/placeholder.jpg"}
                 alt={animal.nome}
-                width={260}
-                height={260}
-                className="rounded-t-xl object-cover w-full h-[240px]"
+                width={280}
+                height={200}
+                className="rounded-t-xl object-cover w-full h-full group-hover:brightness-95 transition duration-300"
               />
               {isAdotados && (
                 <span className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20">Adotado</span>
@@ -63,22 +63,20 @@ function CardsSlider({ cards, tipo, isAdotados }) {
             <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
               <div>
                 <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
-                <p className="descricao-limitada">{ animal.descricao }</p>
-                
+                <p className="descricao-limitada mb-2">{ animal.descricao }</p>
                 <div className="flex justify-center gap-2 mb-3 flex-wrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.vacinado ? "Vacinado" : "Não vacinado"}
                   </span>
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.castrado ? "Castrado" : "Não castrado"}
-                    
                   </span>
                 </div>
               </div>
 
               <Link
                 href={`/${animal.especie}/${animal.slug}`}
-                className={`mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition ${isAdotados ? 'bg-green-200 text-green-900 hover:bg-green-300' : 'bg-pink-200 text-gray-800 hover:bg-pink-300'}`}
+                className={`mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition-colors duration-300 ${isAdotados ? 'bg-green-200 text-green-900 hover:bg-green-300' : 'bg-pink-200 text-gray-800 hover:bg-pink-300'}`}
               >
                 Conhecer
               </Link>
@@ -88,7 +86,7 @@ function CardsSlider({ cards, tipo, isAdotados }) {
 
         <Link
           href={`/animais?especie=${tipo}`}
-          className="min-w-[260px] h-auto bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition"
+          className="min-w-[280px] max-w-[280px] h-[420px] bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition"
         >
           <div className="p-6">
             <h3 className="text-base font-semibold text-gray-700 mb-1">Ver todos</h3>
@@ -140,9 +138,17 @@ export default function Home() {
     });
   }
 
-  const dogCards = animais.filter((a) => a.especie === "cachorro").slice(0, 10);
-  const catCards = animais.filter((a) => a.especie === "gato").slice(0, 10);
-  const adoptedCards = animais.filter((a) => a.adotado).slice(0, 12);
+  const dogCards = animais.filter((a) => a.especie === "cachorro" && a.adotado === false).slice(0, 10);
+  const catCards = animais.filter((a) => a.especie === "gato" && a.adotado === false).slice(0, 10);
+  const adoptedAnimals = animais
+    .filter((a) => a.adotado)
+    .sort((a, b) => {
+      if (a.dataAdocao && b.dataAdocao) {
+        return new Date(b.dataAdocao) - new Date(a.dataAdocao);
+      }
+      return (b.id || 0) - (a.id || 0);
+    })
+    .slice(0, 3);
 
   const reasons = [
     "Adotar salva vidas e oferece um lar a quem precisa.",
@@ -202,9 +208,42 @@ export default function Home() {
       </section>
       <section className="py-16 px-4 bg-gray-50 text-center">
         <h2 className="text-2xl font-semibold mb-10">Animais que já foram adotados</h2>
-        <div className="max-w-screen-xl mx-auto relative">
-          {adoptedCards.length > 0 ? (
-            <CardsSlider cards={adoptedCards} tipo={adoptedCards[0]?.especie || "cachorro"} isAdotados={true} />
+        <div className="max-w-screen-xl mx-auto">
+          {adoptedAnimals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {adoptedAnimals.map((animal, i) => (
+                <div
+                  key={animal.id || i}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-transform transition-shadow duration-300 flex flex-col overflow-hidden relative min-h-[420px] max-w-[280px] mx-auto"
+                >
+                  <div className="relative w-full h-[200px]">
+                    <Image
+                      src={animal.imagemUrl || "/placeholder.jpg"}
+                      alt={animal.nome}
+                      width={280}
+                      height={200}
+                      className="w-full h-full object-cover rounded-t-xl"
+                    />
+                    <span className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg z-20">Adotado</span>
+                    {animal.lar_temporario && (
+                      <span className="absolute top-3 right-3 bg-yellow-300 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow z-20">Lar Temporário</span>
+                    )}
+                  </div>
+                  <div className="p-5 flex flex-col items-center text-center flex-1">
+                    <h3 className="text-lg font-bold mb-1 text-gray-800">{animal.nome}</h3>
+                    <p className="text-gray-600 mb-3 line-clamp-2">{animal.descricao}</p>
+                    <div className="flex flex-wrap justify-center gap-2 mb-2">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                        {animal.vacinado ? "Vacinado" : "Não vacinado"}
+                      </span>
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                        {animal.castrado ? "Castrado" : "Não castrado"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="text-gray-500">Nenhum animal adotado encontrado.</p>
           )}

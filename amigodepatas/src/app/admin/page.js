@@ -30,7 +30,6 @@ export default function AdminPage() {
   const [filters, setFilters] = useState({ nome: '', especie: '', adotado: '', larTemporario: '' });
   const [currentTab, setCurrentTab] = useState('animais');
 
-  // Simulação de candidaturas
   const [candidaturas] = useState([
     {
       id: 1,
@@ -158,7 +157,6 @@ export default function AdminPage() {
       <Header />
       <main className="flex-grow py-10 px-4">
         <div className="max-w-7xl mx-auto flex gap-8">
-          {/* Menu lateral */}
           <aside className="w-56 hidden md:block">
             <nav className="flex flex-col gap-2">
               <button
@@ -175,7 +173,6 @@ export default function AdminPage() {
               </button>
             </nav>
           </aside>
-          {/* Conteúdo principal */}
           <div className="flex-1">
             {currentTab === 'animais' && (
               <>
