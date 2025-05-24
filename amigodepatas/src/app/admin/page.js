@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api';
+import Swal from 'sweetalert2';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -202,12 +203,48 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este animal?')) {
+    const result = await Swal.fire({
+      title: 'Excluir animal?',
+      text: 'Tem certeza que deseja excluir este animal? Esta ação não pode ser desfeita.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48', // pink-600
+      cancelButtonColor: '#6b7280', // gray-500
+      confirmButtonText: 'Sim, excluir',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      focusCancel: true,
+    });
+    if (result.isConfirmed) {
+      setError('');
       try {
         await authService.deleteAnimal(id);
-        fetchAnimais();
-      } catch {
+        try {
+          const response = await authService.getAnimais();
+          const formatado = response.map((a) => ({
+            ...a,
+            larTemporario: a.lar_temporario ?? false,
+            editando: false,
+          }));
+          setAnimais(formatado);
+        } catch {
+          setAnimais((prev) => prev.filter((a) => a.id !== id));
+        }
+        await Swal.fire({
+          title: 'Excluído!',
+          text: 'O animal foi removido com sucesso.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } catch (e) {
         setError('Erro ao excluir animal');
+        await Swal.fire({
+          title: 'Erro',
+          text: 'Não foi possível excluir o animal.',
+          icon: 'error',
+          confirmButtonColor: '#e11d48',
+        });
       }
     }
   };
@@ -401,7 +438,6 @@ export default function AdminPage() {
                               <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_adotado !== undefined ? animal._edit_adotado : animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} tabIndex={0} /> Adotado</label>
                               <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_larTemporario !== undefined ? animal._edit_larTemporario : animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} tabIndex={0} /> Lar Temporário</label>
                             </div>
-                            {/* Trash Icon for Delete */}
                             <button
                               onClick={() => handleDelete(animal.id)}
                               className="absolute bottom-4 right-4 p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-all duration-300 ease-in-out shadow-sm"
@@ -413,7 +449,6 @@ export default function AdminPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
                               </svg>
                             </button>
-                            {/* Save Button fixed at bottom */}
                             <button
                               onClick={() => handleSave(animal.id)}
                               className="absolute left-1/2 -translate-x-1/2 bottom-4 px-5 py-2 bg-pink-500 text-white font-medium rounded-xl shadow hover:bg-pink-600 transition-all duration-300 ease-in-out z-20"
@@ -462,7 +497,6 @@ export default function AdminPage() {
             )}
             {currentTab === 'customizar' && (
               <div className="space-y-12">
-                {/* BANNERS DO CARROSSEL */}
                 <section className="bg-white border border-gray-200 rounded-2xl shadow p-6 mb-10">
                   <h2 className="text-xl font-bold mb-4 text-pink-600">Banners do Carrossel</h2>
                   <p className="mb-4 text-gray-600">Adicione até 3 URLs de imagens para o carrossel da página inicial.</p>
@@ -497,7 +531,6 @@ export default function AdminPage() {
                   {bannerMsg && <div className="mt-3 text-green-600 font-semibold">{bannerMsg}</div>}
                 </section>
 
-                {/* CACHORROS EM DESTAQUE */}
                 <section className="bg-white border border-gray-200 rounded-2xl shadow p-6">
                   <h2 className="text-xl font-bold mb-4 text-pink-600">Cachorros em Destaque na Home</h2>
                   <p className="mb-4 text-gray-600">Selecione até 10 cachorros não adotados para aparecerem em destaque na home.</p>
