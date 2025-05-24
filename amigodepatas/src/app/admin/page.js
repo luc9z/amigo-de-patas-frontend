@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api';
+import Swal from 'sweetalert2';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -202,12 +203,48 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este animal?')) {
+    const result = await Swal.fire({
+      title: 'Excluir animal?',
+      text: 'Tem certeza que deseja excluir este animal? Esta ação não pode ser desfeita.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48', // pink-600
+      cancelButtonColor: '#6b7280', // gray-500
+      confirmButtonText: 'Sim, excluir',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      focusCancel: true,
+    });
+    if (result.isConfirmed) {
+      setError('');
       try {
         await authService.deleteAnimal(id);
-        fetchAnimais();
-      } catch {
+        try {
+          const response = await authService.getAnimais();
+          const formatado = response.map((a) => ({
+            ...a,
+            larTemporario: a.lar_temporario ?? false,
+            editando: false,
+          }));
+          setAnimais(formatado);
+        } catch {
+          setAnimais((prev) => prev.filter((a) => a.id !== id));
+        }
+        await Swal.fire({
+          title: 'Excluído!',
+          text: 'O animal foi removido com sucesso.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } catch (e) {
         setError('Erro ao excluir animal');
+        await Swal.fire({
+          title: 'Erro',
+          text: 'Não foi possível excluir o animal.',
+          icon: 'error',
+          confirmButtonColor: '#e11d48',
+        });
       }
     }
   };
@@ -333,50 +370,113 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {animaisFiltrados.map((animal) => (
-                    <div key={animal.id} className="border border-gray-200 rounded-2xl p-4 shadow bg-white flex flex-col">
-                      {animal.imagemUrl && (
-                        <img src={animal.imagemUrl} alt={animal.nome} className="w-full h-48 object-cover rounded-xl mb-4" />
-                      )}
-                      {animal.editando ? (
-                        <>
-                          <input className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.nome} onChange={(e) => handleFieldChange(animal.id, 'nome', e.target.value)} />
-                          <textarea className="mb-2 border px-3 py-2 rounded text-gray-800" rows={2} value={animal.descricao} onChange={(e) => handleFieldChange(animal.id, 'descricao', e.target.value)} />
-                          <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.especie} onChange={(e) => handleFieldChange(animal.id, 'especie', e.target.value)}><option value="cachorro">Cachorro</option><option value="gato">Gato</option></select>
-                          <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.porte} onChange={(e) => handleFieldChange(animal.id, 'porte', e.target.value)}><option value="pequeno">Pequeno</option><option value="medio">Médio</option><option value="grande">Grande</option></select>
-                          <select className="mb-2 border px-3 py-2 rounded text-gray-800" value={animal.sexo} onChange={(e) => handleFieldChange(animal.id, 'sexo', e.target.value)}><option value="macho">Macho</option><option value="femea">Fêmea</option></select>
-                          <div className="flex flex-wrap gap-4 text-gray-700 mb-2">
-                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_vacinado !== undefined ? animal._edit_vacinado : animal.vacinado} onChange={(e) => handleFieldChange(animal.id, 'vacinado', e.target.checked)} /> Vacinado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_castrado !== undefined ? animal._edit_castrado : animal.castrado} onChange={(e) => handleFieldChange(animal.id, 'castrado', e.target.checked)} /> Castrado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_adotado !== undefined ? animal._edit_adotado : animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} /> Adotado</label>
-                            <label><input type="checkbox" className="w-5 h-5" checked={animal._edit_larTemporario !== undefined ? animal._edit_larTemporario : animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} /> Lar Temporário</label>
-                          </div>
-                          <div className="mt-2 flex gap-2">
-                            <button onClick={() => handleSave(animal.id)} className="bg-pink-600 text-white px-4 py-1 rounded-xl hover:bg-pink-700">Salvar</button>
-                            <button onClick={cancelEdit} className="bg-gray-300 text-gray-800 px-4 py-1 rounded-xl hover:bg-gray-400">Cancelar</button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <h3 className="text-lg font-bold text-gray-800 mb-1">{animal.nome}</h3>
-                          <p className="text-gray-600 mb-2 line-clamp-2">{animal.descricao}</p>
-                          <div className="text-sm text-gray-500 space-y-1">
-                            <p>Espécie: {animal.especie}</p>
-                            <p>Porte: {animal.porte}</p>
-                            <p>Sexo: {animal.sexo}</p>
-                            <p>Vacinado: {animal.vacinado ? 'Sim' : 'Não'}</p>
-                            <p>Castrado: {animal.castrado ? 'Sim' : 'Não'}</p>
-                            <p>Adotado: {animal.adotado ? 'Sim' : 'Não'}</p>
-                            <p>Lar Temporário: {animal.larTemporario ? 'Sim' : 'Não'}</p>
-                          </div>
-                          <div className="mt-4 flex gap-2">
-                            <button onClick={() => toggleEdit(animal.id)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">Editar</button>
-                            <button onClick={() => handleDelete(animal.id)} className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Excluir</button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ))}
+                  {animaisFiltrados.map((animal) => {
+                    const isEditing = animal.editando;
+                    return (
+                      <div
+                        key={animal.id}
+                        className={`relative group border border-gray-200 rounded-2xl p-4 shadow bg-white flex flex-col transition-all duration-300 ease-in-out hover:border-pink-400 hover:shadow-lg cursor-pointer`}
+                        onMouseEnter={() => {
+                          if (!animal.editando) toggleEdit(animal.id);
+                        }}
+                        onMouseLeave={() => {
+                          if (animal.editando) toggleEdit(animal.id);
+                        }}
+                        style={animal.editando ? { cursor: 'default' } : { cursor: 'pointer' }}
+                      >
+                        {animal.imagemUrl && (
+                          <img src={animal.imagemUrl} alt={animal.nome} className="w-full h-48 object-cover rounded-xl mb-4" />
+                        )}
+                        {animal.editando ? (
+                          <>
+                            <input
+                              className="mb-2 px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-0 bg-white text-gray-800 transition-all duration-300 ease-in-out outline-none shadow-none"
+                              value={animal._edit_nome ?? animal.nome}
+                              onChange={(e) => handleFieldChange(animal.id, 'nome', e.target.value)}
+                              placeholder="Nome"
+                              tabIndex={0}
+                            />
+                            <textarea
+                              className="mb-2 px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-0 bg-white text-gray-800 transition-all duration-300 ease-in-out outline-none shadow-none"
+                              rows={2}
+                              value={animal._edit_descricao ?? animal.descricao}
+                              onChange={(e) => handleFieldChange(animal.id, 'descricao', e.target.value)}
+                              placeholder="Descrição"
+                              tabIndex={0}
+                            />
+                            <select
+                              className="mb-2 px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-0 bg-white text-gray-800 transition-all duration-300 ease-in-out outline-none shadow-none"
+                              value={animal._edit_especie ?? animal.especie}
+                              onChange={(e) => handleFieldChange(animal.id, 'especie', e.target.value)}
+                              tabIndex={0}
+                            >
+                              <option value="cachorro">Cachorro</option>
+                              <option value="gato">Gato</option>
+                            </select>
+                            <select
+                              className="mb-2 px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-0 bg-white text-gray-800 transition-all duration-300 ease-in-out outline-none shadow-none"
+                              value={animal._edit_porte ?? animal.porte}
+                              onChange={(e) => handleFieldChange(animal.id, 'porte', e.target.value)}
+                              tabIndex={0}
+                            >
+                              <option value="pequeno">Pequeno</option>
+                              <option value="medio">Médio</option>
+                              <option value="grande">Grande</option>
+                            </select>
+                            <select
+                              className="mb-2 px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-0 bg-white text-gray-800 transition-all duration-300 ease-in-out outline-none shadow-none"
+                              value={animal._edit_sexo ?? animal.sexo}
+                              onChange={(e) => handleFieldChange(animal.id, 'sexo', e.target.value)}
+                              tabIndex={0}
+                            >
+                              <option value="macho">Macho</option>
+                              <option value="femea">Fêmea</option>
+                            </select>
+                            <div className="flex flex-wrap gap-4 text-gray-700 mb-10">
+                              <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_vacinado !== undefined ? animal._edit_vacinado : animal.vacinado} onChange={(e) => handleFieldChange(animal.id, 'vacinado', e.target.checked)} tabIndex={0} /> Vacinado</label>
+                              <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_castrado !== undefined ? animal._edit_castrado : animal.castrado} onChange={(e) => handleFieldChange(animal.id, 'castrado', e.target.checked)} tabIndex={0} /> Castrado</label>
+                              <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_adotado !== undefined ? animal._edit_adotado : animal.adotado} onChange={(e) => handleFieldChange(animal.id, 'adotado', e.target.checked)} tabIndex={0} /> Adotado</label>
+                              <label className="flex items-center gap-2"><input type="checkbox" className="w-5 h-5" checked={animal._edit_larTemporario !== undefined ? animal._edit_larTemporario : animal.larTemporario} onChange={(e) => handleFieldChange(animal.id, 'larTemporario', e.target.checked)} tabIndex={0} /> Lar Temporário</label>
+                            </div>
+                            <button
+                              onClick={() => handleDelete(animal.id)}
+                              className="absolute bottom-4 right-4 p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 transition-all duration-300 ease-in-out shadow-sm"
+                              title="Excluir"
+                              tabIndex={0}
+                              type="button"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleSave(animal.id)}
+                              className="absolute left-1/2 -translate-x-1/2 bottom-4 px-5 py-2 bg-pink-500 text-white font-medium rounded-xl shadow hover:bg-pink-600 transition-all duration-300 ease-in-out z-20"
+                              style={{minWidth: '120px', maxWidth: '70%'}}
+                              tabIndex={0}
+                              type="button"
+                            >
+                              Salvar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <h3 className="text-lg font-bold text-gray-800 mb-1">{animal.nome}</h3>
+                            <p className="text-gray-600 mb-2 line-clamp-2">{animal.descricao}</p>
+                            <div className="text-sm text-gray-500 space-y-1">
+                              <p>Espécie: {animal.especie}</p>
+                              <p>Porte: {animal.porte}</p>
+                              <p>Sexo: {animal.sexo}</p>
+                              <p>Vacinado: {animal.vacinado ? 'Sim' : 'Não'}</p>
+                              <p>Castrado: {animal.castrado ? 'Sim' : 'Não'}</p>
+                              <p>Adotado: {animal.adotado ? 'Sim' : 'Não'}</p>
+                              <p>Lar Temporário: {animal.larTemporario ? 'Sim' : 'Não'}</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -397,7 +497,6 @@ export default function AdminPage() {
             )}
             {currentTab === 'customizar' && (
               <div className="space-y-12">
-                {/* BANNERS DO CARROSSEL */}
                 <section className="bg-white border border-gray-200 rounded-2xl shadow p-6 mb-10">
                   <h2 className="text-xl font-bold mb-4 text-pink-600">Banners do Carrossel</h2>
                   <p className="mb-4 text-gray-600">Adicione até 3 URLs de imagens para o carrossel da página inicial.</p>
@@ -432,7 +531,6 @@ export default function AdminPage() {
                   {bannerMsg && <div className="mt-3 text-green-600 font-semibold">{bannerMsg}</div>}
                 </section>
 
-                {/* CACHORROS EM DESTAQUE */}
                 <section className="bg-white border border-gray-200 rounded-2xl shadow p-6">
                   <h2 className="text-xl font-bold mb-4 text-pink-600">Cachorros em Destaque na Home</h2>
                   <p className="mb-4 text-gray-600">Selecione até 10 cachorros não adotados para aparecerem em destaque na home.</p>
