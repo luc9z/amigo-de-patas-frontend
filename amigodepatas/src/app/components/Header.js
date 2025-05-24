@@ -21,15 +21,15 @@ export default function Header() {
       </Link>
 
       <nav className="flex gap-6">
-        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+        <Link href="/quem-somos" className="text-gray-600 hover:text-gray-800 transition">
           Quem Somos
-        </a>
-        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+        </Link>
+        <Link href="/animais" className="text-gray-600 hover:text-gray-800 transition">
           Quero Adotar
-        </a>
-        <a href="#" className="text-gray-600 hover:text-gray-800 transition">
+        </Link>
+        <Link href="/contato" className="text-gray-600 hover:text-gray-800 transition">
           Contato
-        </a>
+        </Link>
       </nav>
 
       <div className="flex gap-2 items-center">

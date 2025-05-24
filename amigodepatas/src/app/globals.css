@@ -111,3 +111,20 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.descricao-limitada {
+  display: -webkit-box;
+  -webkit-line-clamp: 3; 
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.animate-bounce-slow {
+  animation: bounce 2.5s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+

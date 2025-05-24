@@ -14,13 +14,13 @@ const carouselImages = [
   "/banners/banner3.jpg",
 ];
 
-function CardsSlider({ cards, tipo, isAdotados }) {
+function CardsSlider({ cards, tipo }) {
   const scrollRef = useRef(null);
 
   const scroll = (dir) => {
     if (scrollRef.current) {
       const amount = 280;
-      scrollRef.current.scrollBy({ left: (dir === "left" ? -amount : amount), behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
     }
   };
 
@@ -32,7 +32,6 @@ function CardsSlider({ cards, tipo, isAdotados }) {
       >
         <ChevronLeft />
       </button>
-
       <div
         ref={scrollRef}
         className="flex gap-6 overflow-x-auto scroll-smooth px-6 py-2 scrollbar-hide"
@@ -40,25 +39,26 @@ function CardsSlider({ cards, tipo, isAdotados }) {
         {cards.map((animal, i) => (
           <div
             key={animal.id || i}
-            className={`min-w-[260px] h-auto border rounded-xl shadow-md flex flex-col overflow-hidden ${isAdotados ? 'bg-green-50 border-green-300 relative' : 'bg-white border-gray-200'}`}
+            className="w-72 h-[420px] border rounded-xl shadow-md flex flex-col overflow-hidden relative bg-white border-gray-200 transition-all duration-300 hover:scale-105 hover:shadow-xl animate-fade-in flex-shrink-0"
           >
-            <div className="w-full h-auto relative">
+            <div className="w-full h-[200px] relative">
               <Image
                 src={animal.imagemUrl || "/placeholder.jpg"}
                 alt={animal.nome}
-                width={260}
-                height={260}
-                className="rounded-t-xl object-cover w-full h-[240px]"
+                width={288}
+                height={200}
+                className="rounded-t-xl object-cover w-full h-full"
               />
-              {isAdotados && (
-                <span className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20">Adotado</span>
+              {animal.lar_temporario && (
+                <span className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1">
+                  🏠 Lar Temporário
+                </span>
               )}
             </div>
-
             <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
               <div>
                 <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
-                <p className="text-sm text-gray-600 mb-2">{animal.descricao}</p>
+                <p className="descricao-limitada mb-2">{animal.descricao}</p>
                 <div className="flex justify-center gap-2 mb-3 flex-wrap">
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                     {animal.vacinado ? "Vacinado" : "Não vacinado"}
@@ -68,20 +68,18 @@ function CardsSlider({ cards, tipo, isAdotados }) {
                   </span>
                 </div>
               </div>
-
               <Link
                 href={`/${animal.especie}/${animal.slug}`}
-                className={`mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition ${isAdotados ? 'bg-green-200 text-green-900 hover:bg-green-300' : 'bg-pink-200 text-gray-800 hover:bg-pink-300'}`}
+                className="mt-auto inline-block text-sm font-medium text-center py-2 px-4 rounded-md transition-colors duration-300 bg-pink-200 text-gray-800 hover:bg-pink-300"
               >
                 Conhecer
               </Link>
             </div>
           </div>
         ))}
-
         <Link
           href={`/animais?especie=${tipo}`}
-          className="min-w-[260px] h-auto bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition"
+          className="min-w-[280px] max-w-[280px] h-[420px] bg-gray-100 border border-gray-200 rounded-xl shadow-md flex flex-col justify-center items-center text-center hover:bg-gray-200 transition flex-shrink-0"
         >
           <div className="p-6">
             <h3 className="text-base font-semibold text-gray-700 mb-1">Ver todos</h3>
@@ -89,7 +87,6 @@ function CardsSlider({ cards, tipo, isAdotados }) {
           </div>
         </Link>
       </div>
-
       <button
         onClick={() => scroll("right")}
         className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
@@ -133,9 +130,17 @@ export default function Home() {
     });
   }
 
-  const dogCards = animais.filter((a) => a.especie === "cachorro").slice(0, 10);
-  const catCards = animais.filter((a) => a.especie === "gato").slice(0, 10);
-  const adoptedCards = animais.filter((a) => a.adotado).slice(0, 12);
+  const dogCards = animais.filter((a) => a.especie === "cachorro" && a.adotado === false).slice(0, 8);
+  const catCards = animais.filter((a) => a.especie === "gato" && a.adotado === false).slice(0, 8);
+  const adoptedAnimals = animais
+    .filter((a) => a.adotado)
+    .sort((a, b) => {
+      if (a.dataAdocao && b.dataAdocao) {
+        return new Date(b.dataAdocao) - new Date(a.dataAdocao);
+      }
+      return (b.id || 0) - (a.id || 0);
+    })
+    .slice(0, 4);
 
   const reasons = [
     "Adotar salva vidas e oferece um lar a quem precisa.",
@@ -195,9 +200,46 @@ export default function Home() {
       </section>
       <section className="py-16 px-4 bg-gray-50 text-center">
         <h2 className="text-2xl font-semibold mb-10">Animais que já foram adotados</h2>
-        <div className="max-w-screen-xl mx-auto relative">
-          {adoptedCards.length > 0 ? (
-            <CardsSlider cards={adoptedCards} tipo={adoptedCards[0]?.especie || "cachorro"} isAdotados={true} />
+        <div className="max-w-screen-xl mx-auto">
+          {adoptedAnimals.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-8">
+              {adoptedAnimals.map((animal, i) => {
+                const celebratoryMessages = [
+                  "Parabéns! Este pet encontrou um lar cheio de amor!",
+                  "Agora tenho uma família para chamar de minha!",
+                  "Fui adotado e estou muito feliz no meu novo lar!",
+                  "Ganhei um novo começo ao lado de pessoas incríveis!"
+                ];
+                return (
+                  <div
+                    key={animal.id || i}
+                    className="w-72 h-[420px] border rounded-xl shadow-md flex flex-col overflow-hidden relative bg-green-50 border-green-300 transition-transform transition-shadow duration-300 hover:scale-105 hover:shadow-xl animate-fade-in"
+                  >
+                    <div className="w-full h-[200px] relative">
+                      <Image
+                        src={animal.imagemUrl || "/placeholder.jpg"}
+                        alt={animal.nome}
+                        width={288}
+                        height={200}
+                        className="rounded-t-xl object-cover w-full h-full"
+                      />
+                      <span className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1">
+                        🏠 Já tem um lar!
+                      </span>
+                    </div>
+                    <div className="p-4 flex-grow text-center flex flex-col justify-between h-full">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-1">{animal.nome}</h3>
+                        <p className="descricao-limitada mb-2">{animal.descricao}</p>
+                      </div>
+                      <div className="mt-2 text-green-700 text-sm font-semibold bg-green-100 rounded-lg px-3 py-2 animate-fade-in">
+                        {celebratoryMessages[i % celebratoryMessages.length]}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <p className="text-gray-500">Nenhum animal adotado encontrado.</p>
           )}
