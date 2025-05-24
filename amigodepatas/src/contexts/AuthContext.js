@@ -23,16 +23,13 @@ const decodeToken = (token) => {
   }
 };
 
-// Função para extrair a role principal do token
 const extractRole = (decodedToken) => {
   if (!decodedToken) return 'ROLE_USER';
   
-  // Se tiver roles como array, pega a primeira role
   if (decodedToken.roles && Array.isArray(decodedToken.roles) && decodedToken.roles.length > 0) {
     return decodedToken.roles[0];
   }
   
-  // Se tiver role como string
   if (decodedToken.role) {
     return decodedToken.role;
   }
@@ -52,7 +49,6 @@ export function AuthProvider({ children }) {
                 const decodedToken = decodeToken(token);
                 const userData = JSON.parse(storedUser);
                 
-                // Adiciona a role do token ao userData
                 const role = extractRole(decodedToken);
                 userData.role = role;
                 setUserRole(role);
@@ -114,7 +110,6 @@ export function AuthProvider({ children }) {
         }
     };
 
-    // Log quando a role muda
     useEffect(() => {
         console.log('Role do usuário atualizada:', userRole);
     }, [userRole]);

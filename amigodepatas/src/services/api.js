@@ -33,20 +33,16 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ email, senha }),
     });
-    return data;
-  },
 
-  register: async (userData) => {
-    const userDTO = {
-      nome: userData.nome,
-      email: userData.email,
-      senha: userData.senha,
-    };
+    console.log('Login response:', data);
 
-    const data = await fetchAPI('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userDTO),
-    });
+    if (data.token && data.id) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.id);
+    } else {
+      console.error('Resposta de login inválida:', data);
+    }
+
     return data;
   },
 
@@ -60,7 +56,7 @@ export const authService = {
 
   logout: () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('userId');
   },
 
   isAuthenticated: () => {
@@ -107,5 +103,29 @@ export const authService = {
   },
 };
 
-// Exporta o serviço de autenticação
-export default authService; 
+// Serviço de favoritos usando userId armazenado localmente
+export const favoritoService = {
+  addFavorito: async (animalId) => {
+    const userId = localStorage.getItem('userId');
+    console.log('addFavorito: userId =', userId); // debug
+    return fetchAPI(`/favoritos/${userId}/${animalId}`, {
+      method: 'POST',
+    });
+  },
+
+  removeFavorito: async (animalId) => {
+    const userId = localStorage.getItem('userId');
+    console.log('removeFavorito: userId =', userId); // debug
+    return fetchAPI(`/favoritos/${userId}/${animalId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getFavoritos: async () => {
+    const userId = localStorage.getItem('userId');
+    console.log('getFavoritos: userId =', userId); // debug
+    return fetchAPI(`/favoritos/${userId}`);
+  },
+};
+
+export default authService;
