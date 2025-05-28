@@ -16,6 +16,8 @@ export default function Register() {
     email: '',
     senha: '',
     confirmarSenha: '',
+    endereco: '',
+    telefone: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,8 @@ export default function Register() {
         nome: formData.nome,
         email: formData.email,
         senha: formData.senha,
+        endereco: formData.endereco,
+        telefone: formData.telefone,
       });
 
       await login(formData.email, formData.senha);
@@ -82,99 +86,101 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Crie sua conta
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Ou{' '}
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                entre com sua conta existente
-              </Link>
-            </p>
-          </div>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 border border-gray-300 rounded-xl p-8 shadow-md bg-white">
+            <div>
+              <h2 className="text-center text-3xl font-extrabold text-gray-900">
+                Crie sua conta
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600">
+                Ou{' '}
+                <Link href="/login" className="font-medium text-pink-600 hover:text-pink-500">
+                  entre com sua conta existente
+                </Link>
+              </p>
+            </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+            <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+              {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+                    {error}
+                  </div>
+              )}
 
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="nome" className="sr-only">Nome</label>
-                <input
+              <input
                   id="nome"
                   name="nome"
                   type="text"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
                   placeholder="Nome completo"
                   value={formData.nome}
                   onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="sr-only">Email</label>
-                <input
+              />
+              <input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
                   placeholder="Email"
                   value={formData.email}
                   onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="senha" className="sr-only">Senha</label>
-                <input
+              />
+              <input
                   id="senha"
                   name="senha"
                   type="password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
                   placeholder="Senha"
                   value={formData.senha}
                   onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="confirmarSenha" className="sr-only">Confirmar Senha</label>
-                <input
+              />
+              <input
                   id="confirmarSenha"
                   name="confirmarSenha"
                   type="password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
                   placeholder="Confirmar senha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
-                />
-              </div>
-            </div>
+              />
+              <input
+                  id="endereco"
+                  name="endereco"
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  placeholder="Endereço"
+                  value={formData.endereco}
+                  onChange={handleChange}
+              />
+              <input
+                  id="telefone"
+                  name="telefone"
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  placeholder="Telefone"
+                  value={formData.telefone}
+                  onChange={handleChange}
+              />
 
-            <div>
               <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 text-sm font-medium rounded-md text-white bg-pink-400 disabled:opacity-50"
               >
                 {loading ? 'Criando conta...' : 'Criar conta'}
               </button>
-            </div>
-          </form>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+            </form>
+          </div>
+        </main>
+        <Footer />
+      </div>
   );
-} 
+}
