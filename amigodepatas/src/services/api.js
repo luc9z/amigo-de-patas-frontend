@@ -23,7 +23,8 @@ const fetchAPI = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
-    const error = new Error('Erro na requisição');
+    const errorBody = await response.text(); // tenta pegar o texto da resposta
+    const error = new Error(`Erro na requisição: ${response.status} - ${errorBody}`);
     error.response = response;
     throw error;
   }
@@ -59,7 +60,7 @@ export const authService = {
   },
 
   updateUser: async (userData) => {
-    const data = await fetchAPI('/auth/update-user', {
+    const data = await fetchAPI('/auth/update', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
