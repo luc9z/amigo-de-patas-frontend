@@ -1,5 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+if (!API_BASE_URL) {
+  console.error();
+}
+
 const fetchAPI = async (endpoint, options = {}) => {
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -19,7 +23,8 @@ const fetchAPI = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
-    const error = new Error('Erro na requisição');
+    const errorBody = await response.text(); // tenta pegar o texto da resposta
+    const error = new Error(`Erro na requisição: ${response.status} - ${errorBody}`);
     error.response = response;
     throw error;
   }
@@ -28,6 +33,7 @@ const fetchAPI = async (endpoint, options = {}) => {
 };
 
 export const authService = {
+  // 🔐 Login
   login: async (email, senha) => {
     const data = await fetchAPI('/auth/login', {
       method: 'POST',
@@ -36,11 +42,14 @@ export const authService = {
     return data;
   },
 
+  // 📥 Registro
   register: async (userData) => {
     const userDTO = {
       nome: userData.nome,
       email: userData.email,
       senha: userData.senha,
+      endereco: userData.endereco,
+      telefone: userData.telefone,
     };
 
     const data = await fetchAPI('/auth/register', {
@@ -51,12 +60,18 @@ export const authService = {
   },
 
   updateUser: async (userData) => {
-    const data = await fetchAPI('/auth/update-user', {
+    const data = await fetchAPI('/auth/update', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
     return data;
   },
+
+
+  getCurrentUser: async () => {
+    return await fetchAPI('/auth/me');
+  },
+
 
   logout: () => {
     localStorage.removeItem('token');
@@ -66,6 +81,7 @@ export const authService = {
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
   },
+
 
   getAnimais: async () => {
     return fetchAPI('/animais/list');
@@ -91,6 +107,7 @@ export const authService = {
     });
   },
 
+
   testConnection: async () => {
     try {
       const data = await fetchAPI('/auth/login', {
@@ -107,5 +124,4 @@ export const authService = {
   },
 };
 
-// Exporta o serviço de autenticação
-export default authService; 
+export default authService;
