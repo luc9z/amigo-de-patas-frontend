@@ -89,30 +89,20 @@ export default function FilterPanel({ onFilterChange }) {
                                 <option value="fêmea">Fêmea</option>
                             </select>
                         </div>
-                        <div>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input type="checkbox" checked={vacinado === true} onChange={handleVacinadoChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
-                                <span className="text-xs text-gray-800">Vacinado</span>
-                            </label>
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input type="checkbox" checked={castrado === true} onChange={handleCastradoChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
-                                <span className="text-xs text-gray-800">Castrado</span>
-                            </label>
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input type="checkbox" checked={lar_temporario === true} onChange={handleLarTemporarioChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
-                                <span className="text-xs text-gray-800">Lar Temporário</span>
-                            </label>
-                        </div>
-                        <div>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input type="checkbox" checked={adotado === true} onChange={handleAdotadoChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
-                                <span className="text-xs text-gray-800">Adotado</span>
-                            </label>
-                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" checked={castrado === true} onChange={handleCastradoChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
+                            <span className="text-xs text-gray-800">Castrado</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" checked={lar_temporario === true} onChange={handleLarTemporarioChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
+                            <span className="text-xs text-gray-800">Lar Temporário</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" checked={vacinado === true} onChange={handleVacinadoChange} className="h-5 w-5 rounded border-gray-200 text-gray-700 focus:ring-gray-400 transition" />
+                            <span className="text-xs text-gray-800">Vacinado</span>
+                        </label>
                     </div>
                 </div>
             </div>

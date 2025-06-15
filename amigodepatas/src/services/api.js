@@ -33,7 +33,6 @@ const fetchAPI = async (endpoint, options = {}) => {
 };
 
 export const authService = {
-  // 🔐 Login
   login: async (email, senha) => {
     const data = await fetchAPI('/auth/login', {
       method: 'POST',
@@ -42,7 +41,6 @@ export const authService = {
     return data;
   },
 
-  // 📥 Registro
   register: async (userData) => {
     const userDTO = {
       nome: userData.nome,
