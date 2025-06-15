@@ -11,6 +11,7 @@ import { authService } from '@/services/api';
 export default function Register() {
   const router = useRouter();
   const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -19,7 +20,9 @@ export default function Register() {
     endereco: '',
     telefone: '',
   });
+
   const [error, setError] = useState('');
+  const [errorEmail, setErrorEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -33,19 +36,20 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorEmail('');
 
     if (/\d/.test(formData.nome)) {
-      window.alert('O nome não pode conter números.');
+      setError('O nome não pode conter números.');
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      window.alert('Digite um email válido.');
+      setErrorEmail('Digite um email válido.');
       return;
     }
 
     if (formData.senha !== formData.confirmarSenha) {
-      window.alert('As senhas não coincidem.');
+      setError('As senhas não coincidem.');
       return;
     }
 
@@ -62,26 +66,37 @@ export default function Register() {
 
       await login(formData.email, formData.senha);
     } catch (error) {
-      if (error.response) {
-        try {
-          const data = await error.response.clone().json();
-          if (data && data.message) {
-            window.alert(data.message);
-          } else {
-            const text = await error.response.text();
-            window.alert(text || 'Erro ao criar conta. Tente novamente.');
-          }
-        } catch {
-          const text = await error.response.text();
-          window.alert(text || 'Erro ao criar conta. Tente novamente.');
+      setError('');
+      setErrorEmail('');
+
+      try {
+        const text = await error.response.text();
+
+        if (text.toLowerCase().includes('email')) {
+          setErrorEmail(text); // Mostra abaixo do campo de e-mail
+        } else {
+          setError(text || 'Erro ao criar conta.');
         }
-      } else if (error.message) {
-        window.alert(error.message);
-      } else {
-        window.alert('Erro ao criar conta. Tente novamente.');
+      } catch {
+        setError('Este e-mail já está sendo usado por outro Usuario, tente outro e-mail.');
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ Função que formata o telefone
+  const formatPhoneNumber = (value) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+
+    if (digits.length <= 2) {
+      return `(${digits}`;
+    } else if (digits.length <= 6) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    } else if (digits.length <= 10) {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    } else {
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
     }
   };
 
@@ -119,16 +134,26 @@ export default function Register() {
                   value={formData.nome}
                   onChange={handleChange}
               />
-              <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-              />
+
+              <div>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => {
+                      setErrorEmail('');
+                      handleChange(e);
+                    }}
+                />
+                {errorEmail && (
+                    <p className="mt-1 text-sm text-red-600">{errorEmail}</p>
+                )}
+              </div>
+
               <input
                   id="senha"
                   name="senha"
@@ -167,7 +192,10 @@ export default function Register() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
                   placeholder="Telefone"
                   value={formData.telefone}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const formatted = formatPhoneNumber(e.target.value);
+                    setFormData(prev => ({ ...prev, telefone: formatted }));
+                  }}
               />
 
               <button

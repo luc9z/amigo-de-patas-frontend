@@ -165,13 +165,27 @@ export default function AnimalPage() {
             </button>
           ) : (
             <div className="flex flex-col gap-3 items-center">
-              <button
-                className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("adocao") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-pink-200 text-gray-800 hover:bg-pink-300"}`}
-                disabled={jaCandidatado("adocao") || loadingCandidatura}
-                onClick={() => handleCandidatar("adocao")}
-              >
-                {jaCandidatado("adocao") ? "Já se candidatou para adoção" : loadingCandidatura ? "Enviando..." : "Quero Adotar este Animal"}
-              </button>
+              {!user ? (
+                  <p className="text-gray-700 text-sm text-center">
+                    <Link href="/login" className="text-pink-600 font-semibold hover:underline">
+                      Entre na sua conta
+                    </Link>{" "}
+                    ou{" "}
+                    <Link href="/register" className="text-pink-600 font-semibold hover:underline">
+                      crie uma
+                    </Link>{" "}
+                    para adotar este animal.
+                  </p>
+              ) : (
+                  <button
+                      className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("adocao") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-pink-200 text-gray-800 hover:bg-pink-300"}`}
+                      disabled={jaCandidatado("adocao") || loadingCandidatura}
+                      onClick={() => handleCandidatar("adocao")}
+                  >
+                    {jaCandidatado("adocao") ? "Já se candidatou para adoção" : loadingCandidatura ? "Enviando..." : "Quero Adotar este Animal"}
+                  </button>
+              )}
+
               {animal.lar_temporario && (
                 <button
                   className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("lar_temporario") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-yellow-300 text-gray-800 hover:bg-yellow-400"}`}
