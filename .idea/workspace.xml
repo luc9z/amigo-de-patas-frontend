@@ -8,6 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amigodepatas/src/app/components/filterPanel.js" beforeDir="false" afterPath="$PROJECT_DIR$/amigodepatas/src/app/components/filterPanel.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/amigodepatas/src/services/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/amigodepatas/src/services/api.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/amigodepatas/src/app/[especie]/[slug]/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/amigodepatas/src/app/[especie]/[slug]/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/amigodepatas/src/app/register/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/amigodepatas/src/app/register/page.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,6 +91,7 @@
       <workItem from="1749916656262" duration="1233000" />
       <workItem from="1749937937907" duration="752000" />
       <workItem from="1750010772245" duration="1080000" />
+      <workItem from="1750009067623" duration="2173000" />
     </task>
     <servers />
   </component>
