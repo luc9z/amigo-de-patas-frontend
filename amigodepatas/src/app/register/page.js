@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/services/api';
+import { toast } from 'react-toastify';
 
 export default function Register() {
   const router = useRouter();
@@ -21,8 +22,6 @@ export default function Register() {
     telefone: '',
   });
 
-  const [error, setError] = useState('');
-  const [errorEmail, setErrorEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -35,21 +34,19 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setErrorEmail('');
 
     if (/\d/.test(formData.nome)) {
-      setError('O nome não pode conter números.');
+      toast.error('O nome não pode conter números.');
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setErrorEmail('Digite um email válido.');
+      toast.error('Digite um email válido.');
       return;
     }
 
     if (formData.senha !== formData.confirmarSenha) {
-      setError('As senhas não coincidem.');
+      toast.error('As senhas não coincidem.');
       return;
     }
 
@@ -64,31 +61,26 @@ export default function Register() {
         telefone: formData.telefone,
       });
 
+      toast.success('Conta criada com sucesso!');
       await login(formData.email, formData.senha);
     } catch (error) {
-      setError('');
-      setErrorEmail('');
-
       try {
         const text = await error.response.text();
-
         if (text.toLowerCase().includes('email')) {
-          setErrorEmail(text); // Mostra abaixo do campo de e-mail
+          toast.error(text);
         } else {
-          setError(text || 'Erro ao criar conta.');
+          toast.error(text || 'Erro ao criar conta.');
         }
       } catch {
-        setError('Este e-mail já está sendo usado por outro Usuario, tente outro e-mail.');
+        toast.error('Este e-mail já está sendo usado por outro Usuário, tente outro e-mail.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Função que formata o telefone
   const formatPhoneNumber = (value) => {
     const digits = value.replace(/\D/g, '').slice(0, 11);
-
     if (digits.length <= 2) {
       return `(${digits}`;
     } else if (digits.length <= 6) {
@@ -101,107 +93,103 @@ export default function Register() {
   };
 
   return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-pink-50 via-white to-blue-50">
         <Header />
-        <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8 border border-gray-300 rounded-xl p-8 shadow-md bg-white">
-            <div>
-              <h2 className="text-center text-3xl font-extrabold text-gray-900">
+        <main className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full border border-pink-100 rounded-2xl p-10 shadow-xl bg-white/80 backdrop-blur-lg">
+            <div className="mb-6">
+              <h2 className="text-center text-3xl font-extrabold text-pink-600 mb-1">
                 Crie sua conta
               </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
+              <p className="mt-1 text-center text-base text-gray-600">
                 Ou{' '}
-                <Link href="/login" className="font-medium text-pink-600 hover:text-pink-500">
+                <Link href="/login" className="font-semibold text-blue-600 hover:underline">
                   entre com sua conta existente
                 </Link>
               </p>
             </div>
 
-            <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-              {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-                    {error}
-                  </div>
-              )}
-
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <input
                   id="nome"
                   name="nome"
                   type="text"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
                   placeholder="Nome completo"
                   value={formData.nome}
                   onChange={handleChange}
+                  autoComplete="off"
               />
 
-              <div>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={(e) => {
-                      setErrorEmail('');
-                      handleChange(e);
-                    }}
-                />
-                {errorEmail && (
-                    <p className="mt-1 text-sm text-red-600">{errorEmail}</p>
-                )}
-              </div>
+              <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  autoComplete="off"
+              />
 
               <input
                   id="senha"
                   name="senha"
                   type="password"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
                   placeholder="Senha"
                   value={formData.senha}
                   onChange={handleChange}
+                  autoComplete="off"
               />
+
               <input
                   id="confirmarSenha"
                   name="confirmarSenha"
                   type="password"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
                   placeholder="Confirmar senha"
                   value={formData.confirmarSenha}
                   onChange={handleChange}
+                  autoComplete="off"
               />
+
               <input
                   id="endereco"
                   name="endereco"
                   type="text"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
                   placeholder="Endereço"
                   value={formData.endereco}
                   onChange={handleChange}
+                  autoComplete="off"
               />
+
               <input
                   id="telefone"
                   name="telefone"
                   type="text"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-pink-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                   placeholder="Telefone"
                   value={formData.telefone}
                   onChange={(e) => {
                     const formatted = formatPhoneNumber(e.target.value);
                     setFormData(prev => ({ ...prev, telefone: formatted }));
                   }}
+                  autoComplete="off"
+                  maxLength={15}
               />
 
               <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-2 px-4 text-sm font-medium rounded-md text-white bg-pink-400 disabled:opacity-50"
+                  className="w-full flex justify-center py-2 px-4 text-base font-bold rounded-lg text-white bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 transition disabled:opacity-60 shadow"
               >
                 {loading ? 'Criando conta...' : 'Criar conta'}
               </button>

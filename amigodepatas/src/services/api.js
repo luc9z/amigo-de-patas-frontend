@@ -1,9 +1,5 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-if (!API_BASE_URL) {
-  console.error();
-}
-
 const fetchAPI = async (endpoint, options = {}) => {
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -23,9 +19,10 @@ const fetchAPI = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text(); // tenta pegar o texto da resposta
+    const errorBody = await response.text(); // salva o texto do erro na exceção
     const error = new Error(`Erro na requisição: ${response.status} - ${errorBody}`);
     error.response = response;
+    error.body = errorBody;
     throw error;
   }
 
@@ -33,12 +30,12 @@ const fetchAPI = async (endpoint, options = {}) => {
 };
 
 export const authService = {
+  // Usuário
   login: async (email, senha) => {
-    const data = await fetchAPI('/auth/login', {
+    return fetchAPI('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, senha }),
     });
-    return data;
   },
 
   register: async (userData) => {
@@ -50,26 +47,22 @@ export const authService = {
       telefone: userData.telefone,
     };
 
-    const data = await fetchAPI('/auth/register', {
+    return fetchAPI('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userDTO),
     });
-    return data;
   },
 
   updateUser: async (userData) => {
-    const data = await fetchAPI('/auth/update', {
+    return fetchAPI('/auth/update', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
-    return data;
   },
-
 
   getCurrentUser: async () => {
-    return await fetchAPI('/auth/me');
+    return fetchAPI('/auth/me');
   },
-
 
   logout: () => {
     localStorage.removeItem('token');
@@ -80,29 +73,49 @@ export const authService = {
     return !!localStorage.getItem('token');
   },
 
+  // Animais
+  getAnimais: async () => fetchAPI('/animais/list'),
+  createAnimal: async (animalData) =>
+      fetchAPI('/animais/create', {
+        method: 'POST',
+        body: JSON.stringify(animalData),
+      }),
+  updateAnimal: async (id, animalData) =>
+      fetchAPI(`/animais/update/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(animalData),
+      }),
+  deleteAnimal: async (id) =>
+      fetchAPI(`/animais/delete/${id}`, {
+        method: 'DELETE',
+      }),
 
-  getAnimais: async () => {
-    return fetchAPI('/animais/list');
-  },
+  // Candidaturas (Applications)
+  getCandidaturas: async () => fetchAPI('/applications'),
+  approveCandidatura: async (id) =>
+      fetchAPI(`/applications/${id}/approve`, { method: 'PUT' }),
+  rejectCandidatura: async (id) =>
+      fetchAPI(`/applications/${id}/reject`, { method: 'PUT' }),
 
-  createAnimal: async (animalData) => {
-    return fetchAPI('/animais/create', {
+  /**
+   * Cria uma candidatura para adoção ou lar temporário
+   * @param {Object} params
+   * @param {string} params.animalId - UUID do animal
+   * @param {string} params.type - "ADOCAO" ou "LAR_TEMPORARIO"
+   * @param {string} [params.message] - mensagem opcional
+   */
+  criarCandidatura: async ({ animalId, type = "ADOCAO", message = "" }) => {
+    return fetchAPI('/applications', {
       method: 'POST',
-      body: JSON.stringify(animalData),
+      body: JSON.stringify({ animalId, type, message }),
     });
   },
 
-  updateAnimal: async (id, animalData) => {
-    return fetchAPI(`/animais/update/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(animalData),
-    });
-  },
+  getMinhasCandidaturas: async () => fetchAPI('/applications/mine'),
 
-  deleteAnimal: async (id) => {
-    return fetchAPI(`/animais/delete/${id}`, {
-      method: 'DELETE',
-    });
+  deleteCandidatura: async (id) => {
+    const res = await fetch(`/applications/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Erro ao descartar');
   },
 
 

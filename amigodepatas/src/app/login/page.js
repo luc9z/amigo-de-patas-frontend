@@ -6,12 +6,12 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
   const [formData, setFormData] = useState({ email: '', senha: '' });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -21,87 +21,72 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       await login(formData.email, formData.senha);
+      toast.success('Login realizado com sucesso!');
       router.push('/perfil');
     } catch (err) {
-      setError('Email ou senha inválidos');
+      toast.error('Email ou senha inválidos');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-pink-50 via-white to-blue-50">
         <Header />
-
-        <main className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8 border border-gray-300 rounded-xl p-8 shadow-md bg-white">
-            <div>
-              <h2 className="text-center text-3xl font-extrabold text-gray-900">Entre na sua conta</h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
+        <main className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full border border-pink-100 rounded-2xl p-10 shadow-xl bg-white/80 backdrop-blur-lg">
+            <div className="mb-6">
+              <h2 className="text-center text-3xl font-extrabold text-pink-600">Entre na sua conta</h2>
+              <p className="mt-1 text-center text-base text-gray-600">
                 Ou{' '}
                 <Link
                     href="/register"
-                    className="font-medium text-pink-600 hover:text-pink-500"
+                    className="font-semibold text-blue-600 hover:underline"
                 >
                   crie uma nova conta
                 </Link>
               </p>
             </div>
 
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-                    {error}
-                  </div>
-              )}
-
-              <div className="rounded-md shadow-sm -space-y-px">
-                <div>
-                  <label htmlFor="email" className="sr-only">Email</label>
-                  <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm"
-                      placeholder="Email"
-                      value={formData.email}
-                      onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="senha" className="sr-only">Senha</label>
-                  <input
-                      id="senha"
-                      name="senha"
-                      type="password"
-                      required
-                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm"
-                      placeholder="Senha"
-                      value={formData.senha}
-                      onChange={handleChange}
-                  />
-                </div>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-4">
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    autoComplete="off"
+                />
+                <input
+                    id="senha"
+                    name="senha"
+                    type="password"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-400 transition"
+                    placeholder="Senha"
+                    value={formData.senha}
+                    onChange={handleChange}
+                    autoComplete="off"
+                />
               </div>
-
-              <div>
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center py-2 px-4 text-sm font-medium rounded-md text-white bg-pink-400 disabled:opacity-50"
-                >
-                  {loading ? 'Entrando...' : 'Entrar'}
-                </button>
-              </div>
+              <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-2 px-4 text-base font-bold rounded-lg text-white bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 transition disabled:opacity-60 shadow"
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
+              </button>
             </form>
           </div>
         </main>
-
         <Footer />
       </div>
   );
