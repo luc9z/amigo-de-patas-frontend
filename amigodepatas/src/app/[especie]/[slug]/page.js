@@ -53,7 +53,9 @@ export default function AnimalPage() {
         const todas = await authService.getMinhasCandidaturas();
         // Só do animal atual
         setMinhasCandidaturas(
-            todas.filter((c) => c.animalId === animal.id)
+            todas.filter((c) =>
+                (c.animalId === animal.id || (c.animal && c.animal.id === animal.id))
+            )
         );
       } catch {
         setMinhasCandidaturas([]);
@@ -82,11 +84,14 @@ export default function AnimalPage() {
     }
   };
 
-  // Agora só permite uma candidatura por tipo
+  // Só permite uma candidatura por tipo
   const jaCandidatado = (tipo) => {
     if (!user || !animal) return false;
+    const tipoEnum = getTipoEnum(tipo);
+    // Checa se existe candidatura para o tipo desejado (e.g. ADOCAO)
     return minhasCandidaturas.some(
-        (c) => c.type === getTipoEnum(tipo)
+        (c) =>
+            String((c.type || c.tipo)).toUpperCase() === tipoEnum
     );
   };
 
@@ -101,21 +106,26 @@ export default function AnimalPage() {
     try {
       await authService.criarCandidatura({
         animalId: animal.id,
-        type: getTipoEnum(tipo), // "ADOCAO" ou "LAR_TEMPORARIO"
+        type: getTipoEnum(tipo),
         message: "",
       });
+
+      // Após sucesso, refaz fetch das candidaturas
+      const todas = await authService.getMinhasCandidaturas();
+      setMinhasCandidaturas(
+          todas.filter((c) =>
+              (c.animalId === animal.id || (c.animal && c.animal.id === animal.id))
+          )
+      );
       setMensagem(
           tipo === "adocao"
               ? "Candidatura para adoção enviada com sucesso!"
               : "Candidatura para lar temporário enviada com sucesso!"
       );
-      // Atualiza candidaturas do animal atual
-      const todas = await authService.getMinhasCandidaturas();
-      setMinhasCandidaturas(
-          todas.filter((c) => c.animalId === animal.id)
-      );
     } catch (err) {
-      setMensagem("Erro ao enviar candidatura. " + (err.body || err.message || ""));
+      setMensagem(
+          "Erro ao enviar candidatura. " + (err.body || err.message || "")
+      );
     } finally {
       setLoadingCandidatura(false);
     }
@@ -125,54 +135,52 @@ export default function AnimalPage() {
     return <p className="text-center py-20">Animal não encontrado.</p>;
 
   return (
-      <main className="bg-white text-gray-800 font-sans">
+      <main className="bg-gradient-to-br from-pink-50 via-white to-blue-50 min-h-screen text-gray-800 font-sans">
         <Header />
 
         <section className="max-w-3xl mx-auto px-6 pt-8 pb-2">
           <div className="mb-4">
-            <Link href="/" className="text-blue-500 hover:underline">
+            <Link href="/" className="text-pink-600 hover:underline font-semibold">
               Página Inicial
             </Link>
-            <span> / </span>
-            <Link href="/animais" className="text-blue-500 hover:underline">
+            <span className="mx-1 text-gray-400">/</span>
+            <Link href="/animais" className="text-pink-600 hover:underline font-semibold">
               Animais
             </Link>
-            <span> / </span>
+            <span className="mx-1 text-gray-400">/</span>
             <span className="text-gray-700 font-semibold capitalize">{animal.nome}</span>
           </div>
         </section>
 
         <section className="max-w-3xl mx-auto px-6 py-12">
-          <div className={`bg-white shadow-md rounded-2xl p-8 border text-center relative ${animal.adotado ? 'border-green-400' : 'border-gray-200'}`}>
+          <div className={`bg-white shadow-lg rounded-2xl p-8 border-2 text-center relative transition-all duration-300 ${animal.adotado ? 'border-green-400' : 'border-pink-200'}`}>
             <Image
                 src={animal.imagemUrl || "/placeholder.jpg"}
                 alt={animal.nome}
                 width={300}
                 height={300}
-                className="rounded-lg mx-auto object-cover h-[300px] w-[300px]"
+                className="rounded-xl mx-auto object-cover h-[300px] w-[300px] bg-gray-100"
             />
             {animal.adotado && (
                 <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
                   Já foi adotado!
                 </div>
             )}
-            <h1 className="text-2xl font-bold mt-4 mb-1 capitalize">
-              {animal.nome}
-            </h1>
-            <p className="text-gray-600 mb-4">{animal.descricao}</p>
+            <h1 className="text-3xl font-bold mt-6 mb-2 text-pink-600">{animal.nome}</h1>
+            <p className="text-gray-700 mb-6">{animal.descricao}</p>
 
-            <div className="flex justify-center gap-3 flex-wrap mb-6">
-              <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
-                {animal.vacinado ? "Vacinado" : "Não vacinado"}
-              </span>
-              <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
-                {animal.castrado ? "Castrado" : "Não castrado"}
-              </span>
-              <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full capitalize">
-                {animal.porte}
-              </span>
+            <div className="flex justify-center gap-3 flex-wrap mb-8">
+            <span className="bg-green-100 text-green-700 text-base px-4 py-1 rounded-full font-semibold">
+              {animal.vacinado ? "Vacinado" : "Não vacinado"}
+            </span>
+              <span className="bg-green-100 text-green-700 text-base px-4 py-1 rounded-full font-semibold">
+              {animal.castrado ? "Castrado" : "Não castrado"}
+            </span>
+              <span className="bg-gray-200 text-gray-700 text-base px-4 py-1 rounded-full font-semibold capitalize">
+              {animal.porte}
+            </span>
               {animal.lar_temporario && (
-                  <span className="bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">
+                  <span className="bg-yellow-100 text-yellow-800 text-base px-4 py-1 rounded-full font-semibold">
                 Lar Temporário
               </span>
               )}
@@ -180,7 +188,7 @@ export default function AnimalPage() {
 
             {animal.adotado ? (
                 <button
-                    className="font-medium px-6 py-2 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed transition"
+                    className="font-semibold px-8 py-2 rounded-xl text-lg bg-gray-300 text-gray-500 cursor-not-allowed shadow transition"
                     disabled
                 >
                   Este animal já foi adotado
@@ -188,7 +196,7 @@ export default function AnimalPage() {
             ) : (
                 <div className="flex flex-col gap-3 items-center">
                   {!user ? (
-                      <p className="text-gray-700 text-sm text-center">
+                      <p className="text-gray-700 text-base text-center">
                         <Link href="/login" className="text-pink-600 font-semibold hover:underline">
                           Entre na sua conta
                         </Link>{" "}
@@ -200,25 +208,42 @@ export default function AnimalPage() {
                       </p>
                   ) : (
                       <button
-                          className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("adocao") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-pink-200 text-gray-800 hover:bg-pink-300"}`}
+                          className={`font-semibold px-8 py-2 rounded-xl text-lg shadow transition-all duration-300 ${
+                              jaCandidatado("adocao") || loadingCandidatura
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-pink-600 text-white hover:bg-pink-700"
+                          }`}
                           disabled={jaCandidatado("adocao") || loadingCandidatura}
                           onClick={() => handleCandidatar("adocao")}
                       >
-                        {jaCandidatado("adocao") ? "Já se candidatou para adoção" : loadingCandidatura ? "Enviando..." : "Quero Adotar este Animal"}
+                        {jaCandidatado("adocao")
+                            ? "Já se candidatou para adoção"
+                            : loadingCandidatura
+                                ? "Enviando..."
+                                : "Quero Adotar este Animal"}
                       </button>
                   )}
 
-                  {animal.lar_temporario && (
+                  {animal.lar_temporario && user && (
                       <button
-                          className={`font-medium px-6 py-2 rounded-md transition-all duration-300 ${jaCandidatado("lar_temporario") ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-yellow-300 text-gray-800 hover:bg-yellow-400"}`}
+                          className={`font-semibold px-8 py-2 rounded-xl text-lg shadow transition-all duration-300 ${
+                              jaCandidatado("lar_temporario") || loadingCandidatura
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-yellow-400 text-yellow-900 hover:bg-yellow-500"
+                          }`}
                           disabled={jaCandidatado("lar_temporario") || loadingCandidatura}
                           onClick={() => handleCandidatar("lar_temporario")}
                       >
-                        {jaCandidatado("lar_temporario") ? "Já se candidatou para lar temporário" : loadingCandidatura ? "Enviando..." : "Quero ser Lar Temporário"}
+                        {jaCandidatado("lar_temporario")
+                            ? "Já se candidatou para lar temporário"
+                            : loadingCandidatura
+                                ? "Enviando..."
+                                : "Quero ser Lar Temporário"}
                       </button>
                   )}
+
                   {mensagem && (
-                      <div className="mt-3 text-green-700 bg-green-100 px-4 py-2 rounded-xl text-sm font-medium">
+                      <div className="mt-4 text-green-700 bg-green-100 px-6 py-3 rounded-xl text-base font-medium shadow-sm">
                         {mensagem}
                       </div>
                   )}
@@ -228,14 +253,15 @@ export default function AnimalPage() {
         </section>
 
         <section className="max-w-6xl mx-auto px-6 pb-16">
-          <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">
+          <h2 className="text-2xl font-bold text-pink-600 mb-6 text-center">
             Outros animais disponíveis
           </h2>
 
           <div className="relative">
             <button
                 onClick={() => scroll("left")}
-                className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
+                className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-pink-50 z-10 border border-pink-200"
+                aria-label="Ver anterior"
             >
               <ChevronLeft />
             </button>
@@ -248,7 +274,7 @@ export default function AnimalPage() {
                   <Link
                       key={a.id}
                       href={`/${a.especie}/${a.slug}`}
-                      className="min-w-[260px] bg-white border border-gray-200 rounded-xl shadow-md flex flex-col overflow-hidden hover:shadow-lg transition"
+                      className="min-w-[260px] bg-white border-2 border-pink-100 rounded-xl shadow-md flex flex-col overflow-hidden hover:shadow-xl transition"
                   >
                     <Image
                         src={a.imagemUrl || "/placeholder.jpg"}
@@ -258,18 +284,18 @@ export default function AnimalPage() {
                         className="object-cover h-[200px] w-full"
                     />
                     <div className="p-4">
-                      <h3 className="text-lg font-semibold mb-1">{a.nome}</h3>
+                      <h3 className="text-lg font-semibold mb-1 text-pink-600">{a.nome}</h3>
                       <p className="text-sm text-gray-600 mb-2">{a.descricao}</p>
                       <div className="flex gap-2 flex-wrap">
-                        <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full">
-                          {a.vacinado ? "Vacinado" : "Não vacinado"}
-                        </span>
-                        <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full">
-                          {a.castrado ? "Castrado" : "Não castrado"}
-                        </span>
-                        <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full capitalize">
-                          {a.porte}
-                        </span>
+                    <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">
+                      {a.vacinado ? "Vacinado" : "Não vacinado"}
+                    </span>
+                        <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">
+                      {a.castrado ? "Castrado" : "Não castrado"}
+                    </span>
+                        <span className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium capitalize">
+                      {a.porte}
+                    </span>
                       </div>
                     </div>
                   </Link>
@@ -278,7 +304,8 @@ export default function AnimalPage() {
 
             <button
                 onClick={() => scroll("right")}
-                className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-200 z-10"
+                className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-pink-50 z-10 border border-pink-200"
+                aria-label="Ver próximo"
             >
               <ChevronRight />
             </button>

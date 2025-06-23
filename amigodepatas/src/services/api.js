@@ -19,14 +19,17 @@ const fetchAPI = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
-    const errorBody = await response.text(); // salva o texto do erro na exceção
+    const errorBody = await response.text();
     const error = new Error(`Erro na requisição: ${response.status} - ${errorBody}`);
     error.response = response;
     error.body = errorBody;
     throw error;
   }
 
-  return response.json();
+  // Corrigido: suporta DELETE 204 ou resposta sem corpo
+  if (response.status === 204) return;
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 };
 
 export const authService = {
@@ -97,13 +100,6 @@ export const authService = {
   rejectCandidatura: async (id) =>
       fetchAPI(`/applications/${id}/reject`, { method: 'PUT' }),
 
-  /**
-   * Cria uma candidatura para adoção ou lar temporário
-   * @param {Object} params
-   * @param {string} params.animalId - UUID do animal
-   * @param {string} params.type - "ADOCAO" ou "LAR_TEMPORARIO"
-   * @param {string} [params.message] - mensagem opcional
-   */
   criarCandidatura: async ({ animalId, type = "ADOCAO", message = "" }) => {
     return fetchAPI('/applications', {
       method: 'POST',
@@ -114,10 +110,8 @@ export const authService = {
   getMinhasCandidaturas: async () => fetchAPI('/applications/mine'),
 
   deleteCandidatura: async (id) => {
-    const res = await fetch(`/applications/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Erro ao descartar');
+    return fetchAPI(`/applications/${id}`, { method: 'DELETE' });
   },
-
 
   testConnection: async () => {
     try {

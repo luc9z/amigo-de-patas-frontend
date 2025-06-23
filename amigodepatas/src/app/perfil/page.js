@@ -34,11 +34,9 @@ export default function PerfilPage() {
 
   const formatPhoneNumber = (value) => {
     const digits = value.replace(/\D/g, '');
-
     if (digits.length <= 2) return `(${digits}`;
     if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
     if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
   };
 
@@ -61,7 +59,6 @@ export default function PerfilPage() {
       alert("A URL da imagem é muito longa. Por favor, insira um link com no máximo 255 caracteres.");
       return;
     }
-
     setLoading(true);
     try {
       const { email, ...dataToSend } = formData;
@@ -76,11 +73,10 @@ export default function PerfilPage() {
 
   const renderField = (field, label) => {
     const isEditingField = isEditing && field !== 'email';
-
     return (
-        <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm flex items-start justify-between">
+        <div className="border border-pink-100 rounded-xl p-4 bg-white shadow flex items-start justify-between transition-all">
           <div className="w-full">
-            <p className="text-sm text-gray-500">{label}:</p>
+            <p className="text-xs font-medium text-gray-500">{label}:</p>
             {isEditingField ? (
                 <input
                     type="text"
@@ -88,18 +84,19 @@ export default function PerfilPage() {
                     placeholder={`Digite seu ${label.toLowerCase()}`}
                     value={formData[field]}
                     onChange={handleChange}
-                    className={`mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-800 focus:placeholder-transparent ${isEditing ? 'text-gray-600' : 'text-gray-800'}`}
+                    className="mt-1 w-full px-3 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-100 placeholder:text-gray-400 bg-white text-gray-700 text-sm"
                     disabled={loading}
                 />
             ) : (
-                <p className="mt-1 text-gray-800">{formData[field] || 'Não informado'}</p>
+                <p className="mt-1 text-gray-800 text-base">{formData[field] || <span className="text-gray-400">Não informado</span>}</p>
             )}
           </div>
           {isEditingField && (
               <button
                   onClick={() => handleClearField(field)}
-                  className="ml-2 mt-6 text-red-500 hover:text-red-700"
+                  className="ml-2 mt-6 text-red-400 hover:text-red-600 transition"
                   title={`Limpar ${label.toLowerCase()}`}
+                  type="button"
               >
                 🗑️
               </button>
@@ -109,41 +106,41 @@ export default function PerfilPage() {
   };
 
   return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-pink-50 via-white to-blue-50">
         <Header />
-        <main className="flex-grow bg-gray-50 py-10 px-4">
-          <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-md border border-gray-200 p-8">
-            <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">Meu Perfil</h1>
+        <main className="flex-grow py-10 px-4">
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-pink-100 p-8">
+            <h1 className="text-3xl font-bold text-pink-600 text-center mb-8">Meu Perfil</h1>
 
             {user ? (
                 <div className="flex flex-col items-center gap-8">
-                  <div className="relative group flex flex-col items-center">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-200 mb-2 relative" title="Foto de perfil">
+                  <div className="relative flex flex-col items-center">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-pink-200 mb-2 bg-pink-50 shadow">
                       {formData.userImg ? (
                           <Image src={formData.userImg} alt="Foto de perfil" fill className="object-cover" />
                       ) : (
                           <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                            <span className="text-4xl text-gray-500">{formData.nome?.charAt(0).toUpperCase() || "?"}</span>
+                            <span className="text-5xl text-gray-500">{formData.nome?.charAt(0).toUpperCase() || "?"}</span>
                           </div>
                       )}
                     </div>
-
                     {isEditing && (
-                        <div className="mt-2">
-                          <div className="mx-auto grid grid-cols-[1fr_auto] gap-2 items-center w-80">
+                        <div className="mt-2 w-72">
+                          <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
                             <input
                                 type="text"
                                 name="userImg"
                                 placeholder="URL da imagem"
                                 value={formData.userImg}
                                 onChange={handleChange}
-                                className={`px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-800 focus:placeholder-transparent ${isEditing ? 'text-gray-600' : 'text-gray-800'}`}
+                                className="px-4 py-2 border border-pink-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-100 placeholder:text-gray-400 bg-white text-gray-700"
                                 disabled={loading}
                             />
                             <button
                                 onClick={() => handleClearField('userImg')}
-                                className="text-red-500 hover:text-red-700 px-2 py-2 bg-gray-100 rounded-md"
+                                className="text-red-400 hover:text-red-600 px-2 py-2 bg-pink-50 rounded-md transition"
                                 title="Limpar URL"
+                                type="button"
                             >
                               🗑️
                             </button>
@@ -167,7 +164,7 @@ export default function PerfilPage() {
                     {!isEditing ? (
                         <button
                             onClick={() => setIsEditing(true)}
-                            className="bg-pink-400 text-white font-semibold px-6 py-2 rounded-xl shadow-md"
+                            className="bg-pink-600 text-white font-semibold px-8 py-2 rounded-xl shadow hover:bg-pink-700 transition text-lg"
                         >
                           Editar Dados
                         </button>
@@ -175,7 +172,7 @@ export default function PerfilPage() {
                         <button
                             onClick={handleSaveAll}
                             disabled={loading}
-                            className="bg-pink-400 text-white font-semibold px-6 py-2 rounded-xl shadow-md"
+                            className="bg-blue-500 text-white font-semibold px-8 py-2 rounded-xl shadow hover:bg-blue-600 transition text-lg"
                         >
                           {loading ? 'Salvando...' : 'Salvar Alterações'}
                         </button>

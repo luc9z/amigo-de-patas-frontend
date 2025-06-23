@@ -26,10 +26,9 @@ export default function MinhasCandidaturasPage() {
         fetch();
     }, [user]);
 
-
     if (!isAuthenticated) {
         return (
-            <main className="min-h-screen flex flex-col">
+            <main className="min-h-screen flex flex-col bg-gradient-to-br from-pink-50 via-white to-blue-50">
                 <Header />
                 <div className="flex-1 flex items-center justify-center text-gray-500">
                     Faça login para ver suas candidaturas.
@@ -40,34 +39,42 @@ export default function MinhasCandidaturasPage() {
     }
 
     return (
-        <main className="bg-white min-h-screen flex flex-col">
+        <main className="bg-gradient-to-br from-pink-50 via-white to-blue-50 min-h-screen flex flex-col">
             <Header />
             <section className="max-w-3xl mx-auto w-full flex-1 px-4 py-12">
-                <h1 className="text-2xl font-bold text-pink-600 mb-6">Minhas Candidaturas</h1>
+                <h1 className="text-3xl font-bold text-pink-600 mb-8 text-center">Minhas Candidaturas</h1>
                 {loading ? (
-                    <div>Carregando...</div>
+                    <div className="text-center text-gray-600">Carregando...</div>
                 ) : candidaturas.length === 0 ? (
-                    <div className="text-gray-500">Você ainda não possui candidaturas.</div>
+                    <div className="text-gray-500 text-center">Você ainda não possui candidaturas.</div>
                 ) : (
                     <ul className="space-y-6">
                         {candidaturas.map((c) => (
                             <li
                                 key={c.id}
-                                className="border rounded-2xl p-6 flex flex-col gap-2 bg-white shadow"
+                                className="border-2 border-pink-100 rounded-2xl p-6 flex flex-col gap-2 bg-white shadow-lg transition hover:shadow-xl"
                             >
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
                                     <div>
-                                        <div className="font-semibold text-lg">{c.animal?.nome || "-"}</div>
+                                        <div className="font-semibold text-lg text-pink-600">{c.animal?.nome || "-"}</div>
                                         <div className="text-sm text-gray-500 capitalize">
-                                            Tipo: {c.type === "ADOCAO" ? "Adoção" : c.type === "LAR_TEMPORARIO" ? "Lar Temporário" : c.type}
+                                            Tipo:{" "}
+                                            {c.type === "ADOCAO"
+                                                ? "Adoção"
+                                                : c.type === "LAR_TEMPORARIO"
+                                                    ? "Lar Temporário"
+                                                    : c.type}
                                         </div>
-                                        <div className="text-sm text-gray-500">
-                                            Data: {c.applicationDate ? new Date(c.applicationDate).toLocaleDateString() : "-"}
+                                        <div className="text-sm text-gray-400">
+                                            Data:{" "}
+                                            {c.applicationDate
+                                                ? new Date(c.applicationDate).toLocaleDateString("pt-BR")
+                                                : "-"}
                                         </div>
                                     </div>
                                     <div className="ml-auto">
                     <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold
+                        className={`px-4 py-1 rounded-full text-sm font-semibold
                         ${
                             c.status === "PENDENTE"
                                 ? "bg-yellow-100 text-yellow-700"
@@ -87,8 +94,9 @@ export default function MinhasCandidaturasPage() {
                                     </div>
                                 </div>
                                 {c.message && (
-                                    <div className="mt-1 text-gray-700 text-sm">
-                                        <span className="font-semibold">Mensagem:</span> {c.message}
+                                    <div className="mt-1 text-gray-700 text-sm bg-pink-50 rounded-md px-4 py-2">
+                                        <span className="font-semibold text-pink-600">Mensagem:</span>{" "}
+                                        {c.message}
                                     </div>
                                 )}
                             </li>
